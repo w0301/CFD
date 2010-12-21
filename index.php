@@ -11,7 +11,16 @@
  * @LICENSE_END@
  */
 
-include_once("MainSettings.php");
+require_once("MainSettings.php");
 
-echo "Core directory: " . MainSettings::$coreDirectory . "<br/>";
-echo "Core version string: " . MainSettings::$coreVersion . "<br/>";
+try {
+    echo "Root directory: " . MainSettings::getRootDirectoryPath() . "<br/>";
+    echo "Core directory: " . \cfd\core\CoreInfo::getCoreDirectoryPath() . "<br/>";
+    echo "Core version string: " . \cfd\core\CoreInfo::getCoreVersion() . "<br/>";
+}
+catch(\cfd\core\ClassNotFoundException $e) {
+    echo $e->getMessage() . " Class name: " . $e->getClassName() . "<br/>";
+}
+catch(\Exception $e) {
+    echo $e->getMessage() . "<br/>";
+}

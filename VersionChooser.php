@@ -60,79 +60,6 @@ class VersionChooser {
     private $mVersionsArr;
     private $mIsSorted = false;
 
-    /**
-     * Constructs new VersionChooser object that will
-     * choose between version specifed under given directory.
-     *
-     * @param string $dir Path to directory that contains versions (one subdirectory = one version)
-     */
-    public function __construct($dir) {
-        $this->mWorkingDir = $dir . ($dir[strlen($dir) - 1] != "/" ? "/" : "");
-        $this->mVersionsArr = array();
-
-        $dirLister = opendir($this->mWorkingDir);
-        while( ($filename = readdir($dirLister)) !== false ) {
-            if( $filename != "." && $filename != ".." && is_dir($this->mWorkingDir . $filename) ) {
-                $this->mVersionsArr[] = $filename;
-            }
-        }
-        closedir($dirLister);
-        if(count($this->mVersionsArr) == 1) $this->mIsSorted = true;
-    }
-
-    /**
-     * @return @b True if this object operates at least on one version string, @b false otherwise.
-     */
-    public function hasAnyVersion() {
-        return count($this->mVersionsArr) > 0;
-    }
-
-    /**
-     * Returns all version strings in array sorted from
-     * oldest versions to newest versions.
-     */
-    public function getVersions() {
-        $this->sortVersions();
-        return $this->mVersionsArr;
-    }
-
-    public function getOldestVersion() {
-        $this->sortVersions();
-        return reset($this->mVersionsArr);
-    }
-
-    public function getNewestVersion() {
-        $this->sortVersions();
-        return end($this->mVersionsArr);
-    }
-
-    /**
-     * Returns path to oldest version's directory.
-     */
-    public function getOldestVersionPath() {
-        if( !$this->hasAnyVersion() ) return "";
-        return $this->mWorkingDir . $this->getOldestVersion() . "/";
-    }
-
-    /**
-     * Returns path to newest version's directory.
-     */
-    public function getNewestVersionPath() {
-        if( !$this->hasAnyVersion() ) return "";
-        return $this->mWorkingDir . $this->getNewestVersion() . "/";
-    }
-
-    /**
-     * Returns path to specific version's directory.
-     * If specified version does not exist empty string is returned.
-     *
-     * @param string $ver Specific version's string.
-     */
-    public function getSpecificVersionPath($ver) {
-        if(array_search($ver, $this->mVersionsArr) === false) return "";
-        return $this->mWorkingDir . $ver . "/";
-    }
-
     private function cmpVersions($l, $r) {
         if($l == $r) return 0;
         $lMajorityArr = explode(".", $l);
@@ -173,4 +100,87 @@ class VersionChooser {
         $this->mIsSorted = true;
         usort($this->mVersionsArr, "\cfd\core\VersionChooser::cmpVersions");
     }
+
+    /**
+     * Constructs new VersionChooser object that will
+     * choose between version specifed under given directory.
+     *
+     * @param string $dir Path to directory that contains versions (one subdirectory = one version)
+     */
+    public function __construct($dir) {
+        $this->mWorkingDir = $dir . ($dir[strlen($dir) - 1] != "/" ? "/" : "");
+        $this->mVersionsArr = array();
+
+        $dirLister = opendir($this->mWorkingDir);
+        while( ($filename = readdir($dirLister)) !== false ) {
+            if( $filename != "." && $filename != ".." && is_dir($this->mWorkingDir . $filename) ) {
+                $this->mVersionsArr[] = $filename;
+            }
+        }
+        closedir($dirLister);
+        if(count($this->mVersionsArr) == 1) $this->mIsSorted = true;
+    }
+
+    /**
+     * @return @b True if this object operates at least on one version string, @b false otherwise.
+     */
+    public function hasAnyVersion() {
+        return count($this->mVersionsArr) > 0;
+    }
+
+    /**
+     * Returns all version strings in array sorted from
+     * oldest versions to newest versions.
+     */
+    public function getVersions() {
+        $this->sortVersions();
+        return $this->mVersionsArr;
+    }
+
+    /**
+     * @return Version string of oldest version.
+     */
+    public function getOldestVersion() {
+        $this->sortVersions();
+        return reset($this->mVersionsArr);
+    }
+
+    /**
+     * @return Version string of newest version.
+     */
+    public function getNewestVersion() {
+        $this->sortVersions();
+        return end($this->mVersionsArr);
+    }
+
+    /**
+     * @return Path to oldest version's directory.
+     * There is not trailling "/" at the end of returned string.
+     */
+    public function getOldestVersionPath() {
+        if( !$this->hasAnyVersion() ) return "";
+        return $this->mWorkingDir . $this->getOldestVersion();
+    }
+
+    /**
+     * @return Path to newest version's directory.
+     * There is not trailling "/" at the end of returned string.
+     */
+    public function getNewestVersionPath() {
+        if( !$this->hasAnyVersion() ) return "";
+        return $this->mWorkingDir . $this->getNewestVersion();
+    }
+
+    /**
+     * @return Path to specific version's directory.
+     * If specified version does not exist empty string is returned.
+     * There is not trailling "/" at the end of returned string.
+     *
+     * @param string $ver Specific version's string.
+     */
+    public function getSpecificVersionPath($ver) {
+        if(array_search($ver, $this->mVersionsArr) === false) return "";
+        return $this->mWorkingDir . $ver;
+    }
+
 }
