@@ -13,7 +13,7 @@
 
 namespace cfd\core;
 
-require_once("ClassNotFoundException.php");
+require_once("CoreInfo.php");
 
 /**
  * @brief Use to autoload classes.
@@ -60,6 +60,7 @@ class ClassLoader {
     public static function __static() {
         if( is_object(self::$sLoader) ) return;
         self::$sLoader = new ClassLoader();
+        self::$sLoader->addPath( "cfd\\core\\", CoreInfo::getCoreDirectoryPath() );
     }
 
     /**
@@ -108,7 +109,10 @@ class ClassLoader {
                     }
                 }
                 if($included == false) {
-                    throw new ClassNotFoundException("Desired class was not found and can not be loaded.", $className);
+                    throw new ClassNotFoundException(
+                            "Desired class was not found and can not be loaded.",
+                            $namespaceName, $className
+                            );
                 }
             }
         }

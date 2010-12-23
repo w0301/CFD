@@ -13,10 +13,6 @@
 
 namespace cfd\core;
 
-// autoloading doesn't work for this file because it's
-// included in ClassLoader.php file
-require_once("Exception.php");
-
 /**
  * @brief Exception for class inclusion issue.
  *
@@ -28,6 +24,7 @@ require_once("Exception.php");
  */
 class ClassNotFoundException extends \cfd\core\Exception {
     private $mClassName;
+    private $mNamespaceName;
 
     /**
      * Constructs new object.
@@ -36,9 +33,10 @@ class ClassNotFoundException extends \cfd\core\Exception {
      * @param string $className Name of class that faild to load.
      * @param Exception $prev Previously thrown exception.
      */
-    public function __construct($msg, $className, \Exception $prev = NULL) {
+    public function __construct($msg, $namespaceName, $className, \Exception $prev = NULL) {
         parent::__construct($msg, 1, $prev);
         $this->mClassName = $className;
+        $this->mNamespaceName = $namespaceName;
     }
 
     /**
@@ -46,6 +44,13 @@ class ClassNotFoundException extends \cfd\core\Exception {
      */
     public function getClassName() {
         return $this->mClassName;
+    }
+
+    /**
+     * @return Name of namespace that contains class that failed to load.
+     */
+    public function getNamespaceName() {
+        return $this->mNamespaceName;
     }
 
 }

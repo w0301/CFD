@@ -47,9 +47,10 @@ class MainSettings {
      * Substring "%root%" will be substituted with path to
      * root directory of CFD installation and "%core%" substring
      * will be substituted with path to core files directory.
+     * Core directory is assigned to \cfd\core namespace by default
+     * so you don't have to list it in this array.
      */
     private static $sClassLoaderPaths = array(
-        "cfd\\core\\" => "%core%/",
         "cfd\\modules\\" => "%root%/modules/",
         "cfd\\modules\\" => "%root%/sites/all/modules/",
     );
