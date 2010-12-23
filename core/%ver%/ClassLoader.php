@@ -26,7 +26,7 @@ require_once("CoreInfo.php");
  * to use it - it's possible because all request are handled
  * threw index.php file).
  *
- * @see \cfd\core\ClassNotFoundException
+ * @see \\cfd\\core\\ClassNotFoundException
  */
 class ClassLoader {
     private static $sLoader;

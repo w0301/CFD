@@ -20,7 +20,7 @@ namespace cfd\core;
  * source file with desired class definition. Code of this
  * exception is @b 1 (returned by getCode() function)
  *
- * @see \cfd\core\ClassLoader
+ * @see \\cfd\\core\\ClassLoader
  */
 class ClassNotFoundException extends \cfd\core\Exception {
     private $mClassName;
@@ -30,6 +30,7 @@ class ClassNotFoundException extends \cfd\core\Exception {
      * Constructs new object.
      *
      * @param string $msg Message that describes exception.
+     * @param string $namespaceName Name of namespace that contains class that failed to load.
      * @param string $className Name of class that faild to load.
      * @param Exception $prev Previously thrown exception.
      */

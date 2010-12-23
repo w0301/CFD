@@ -13,10 +13,54 @@
 
 require_once("MainSettings.php");
 
+function fo($i) {
+    echo "fo() -> " . $i . "<br/>";
+}
+
+function foo($i) {
+    echo "foo() -> " . $i . "<br/>";
+}
+
+class FooClass {
+    public static function staticFunc($i) {
+        echo "FooClass::staticFunc() -> " . $i . "<br/>";
+    }
+    public function normalFunc($i) {
+        echo "FooClassObj->normalFunc() -> " . $i . "<br/>";
+    }
+    public function normalFunc2($i) {
+        echo "FooClassObj->normalFunc2() -> " . $i . "<br/>";
+    }
+    public function normalFunc3($i) {
+        echo "FooClassObj->normalFunc3() -> " . $i . "<br/>";
+    }
+}
+
 try {
     echo "Root directory: " . MainSettings::getRootDirectoryPath() . "<br/>";
     echo "Core directory: " . \cfd\core\CoreInfo::getCoreDirectoryPath() . "<br/>";
     echo "Core version string: " . \cfd\core\CoreInfo::getCoreVersion() . "<br/>";
+
+    $s = new cfd\core\NormalSignal();
+    $s->connect("foo");
+    $s->connect("fo");
+    $s->connect("FooClass::staticFunc");
+
+    $obj = new FooClass();
+    $s->connect( array($obj, "normalFunc") );
+    $s->connect( array($obj, "normalFunc2") );
+    $s->connect( array($obj, "normalFunc3") );
+
+    echo "<br/><br/>";
+    var_dump( $s->getConnectedFunctions() );
+
+    $s->disconnectAllFrom($obj);
+
+    echo "<br/><br/>";
+    var_dump( $s->getConnectedFunctions() );
+
+    echo "<br/><br/>";
+    $s->emit(123456);
 }
 catch(\cfd\core\ClassNotFoundException $e) {
     echo $e->getMessage() . " Class name: " . $e->getClassName() . "<br/>";
