@@ -15,24 +15,30 @@ require_once("MainSettings.php");
 
 function fo($i) {
     echo "fo() -> " . $i . "<br/>";
+    return true;
 }
 
 function foo($i) {
     echo "foo() -> " . $i . "<br/>";
+    return true;
 }
 
 class FooClass {
     public static function staticFunc($i) {
         echo "FooClass::staticFunc() -> " . $i . "<br/>";
+        return true;
     }
     public function normalFunc($i) {
         echo "FooClassObj->normalFunc() -> " . $i . "<br/>";
+        return true;
     }
     public function normalFunc2($i) {
         echo "FooClassObj->normalFunc2() -> " . $i . "<br/>";
+        return true;
     }
     public function normalFunc3($i) {
         echo "FooClassObj->normalFunc3() -> " . $i . "<br/>";
+        return true;
     }
 }
 
@@ -54,13 +60,13 @@ try {
     echo "<br/><br/>";
     var_dump( $s->getConnectedFunctions() );
 
-    $s->disconnectAllFrom($obj);
+    //$s->disconnectAllFrom($obj);
 
     echo "<br/><br/>";
     var_dump( $s->getConnectedFunctions() );
 
     echo "<br/><br/>";
-    $s->emit(123456);
+    var_dump( $s->emit(123456) );
 }
 catch(\cfd\core\ClassNotFoundException $e) {
     echo $e->getMessage() . " Class name: " . $e->getClassName() . "<br/>";

@@ -54,7 +54,7 @@ abstract class Signal {
      * Parameters have to be array's values.
      */
     protected static function callFunction($func, $params) {
-        call_user_func_array($func, $params);
+        return call_user_func_array($func, $params);
     }
 
     /**
