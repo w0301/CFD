@@ -27,21 +27,32 @@ namespace cfd\core;
  * documentation for those variables it's strictly told which parameters are sent
  * with signal so it's easy to implement function that can handle such signal.
  *
- * @see \\cfd\\core\\NormalSignal
+ * @see \\cfd\\core\\NormalSignal, \\cfd\\core\\ConditionalSignal
  */
-abstract class Signal {
+abstract class Signal extends Object {
     /**
      * Array that contains connected functions.
      */
     protected $mFunctionsList = array();
 
     /**
-     * Disconnects all functions from signal.
-     * This is destructor so it's called when
-     * object is being destroyed.
+     * @brief Constructs the object.
+     *
+     * This constructor calls parent's one.
+     */
+    public function __construct() {
+         parent::__construct();
+    }
+
+    /**
+     * @brief Destructs the object.
+     *
+     * Disconnects all functions from signal and
+     * calls parent's destructor.
      */
     public function __destruct() {
          $this->disconnectAll();
+         parent::__destruct();
     }
 
     /**
@@ -52,6 +63,7 @@ abstract class Signal {
      * @param callback $func Name or array for function.
      * @param array $params Parameters that will be passed to function.
      * Parameters have to be array's values.
+     * @return Called function's return.
      */
     protected static function callFunction($func, $params) {
         return call_user_func_array($func, $params);
@@ -61,13 +73,26 @@ abstract class Signal {
      * @brief Connects function to signal.
      *
      * Connected function will be call during emit() function
-     * execution acording to current singal's rules.
+     * execution acording to current singal's rules. Function
+     * throws BadTypeException if you pass wrong arguments.
      *
      * @param callback $func Function name in string or array
-     * with object on 0. index a function name on 1. index.
+     * with object (must be subclass of \\cfd\\core\\Object) on 0. index
+     * and a function name on 1. index.
      * @see diconnect(), emit()
      */
     public function connect($func) {
+        if( is_array($func) ) {
+            if($func[0] instanceof \cfd\core\Object) {
+                $func[0]->connectToSignal($this);
+            }
+            else {
+                throw new BadTypeException("Cannot connect object that is not instance of \cfd\core\Object.");
+            }
+        }
+        if( (!is_array($func) && !is_string($func)) || (is_array($func) && !is_string($func[1])) ) {
+            throw new BadTypeException("Name of function to connect has to be in string.");
+        }
         $this->mFunctionsList[] = $func;
     }
 
@@ -82,8 +107,11 @@ abstract class Signal {
      * @see connect(), emit()
      */
     public function disconnect($func) {
-        $key = 0;
+        $key = false;
         if( ($key = array_search($func, $this->mFunctionsList)) !== false ) {
+            if( is_array($this->mFunctionsList[$key]) ) {
+                $this->mFunctionsList[$key][0]->disconnectFromSignal($this, true);
+            }
             unset($this->mFunctionsList[$key]);
         }
     }
@@ -97,22 +125,29 @@ abstract class Signal {
      * @see connect(), disconnect()
      */
     public function disconnectAll() {
+        foreach($this->mFunctionsList as $key => &$val) {
+            if( is_array($val) ) {
+                $val[0]->disconnectFromSignal($this, true);
+            }
+            unset($this->mFunctionsList[$key]);
+        }
         $this->mFunctionsList = array();
     }
 
     /**
-     * @brief Disconnects all functions with give object.
+     * @brief Disconnects all functions with given object.
      *
      * This function disconnects all functions that were
      * connected as function of given object. This function
-     * has to be call for an object if you want to destroy
-     * the object that has connected functions to any signal.
+     * is called automatically for all object's connection
+     * when object's Object::destroy() function is called.
      *
      * @param object $obj Object which functions will be disconnected.
      */
-    public function disconnectAllFrom($obj) {
+    public function disconnectAllFrom(Object $obj) {
         foreach($this->mFunctionsList as $key => &$val) {
             if(is_array($val) && $val[0] == $obj) {
+                $obj->disconnectFromSignal($this, true);
                 unset($this->mFunctionsList[$key]);
             }
         }

@@ -30,7 +30,9 @@ class ConditionalSignal extends Signal {
     /**
      * Constructs new ConditionalSignal object.
      */
-    public function __construct() { }
+    public function __construct() {
+        parent::__construct();
+    }
 
     /**
      * Destructs object by calling parent's destructor.

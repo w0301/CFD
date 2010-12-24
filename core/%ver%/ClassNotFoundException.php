@@ -32,7 +32,7 @@ class ClassNotFoundException extends \cfd\core\Exception {
      * @param string $msg Message that describes exception.
      * @param string $namespaceName Name of namespace that contains class that failed to load.
      * @param string $className Name of class that faild to load.
-     * @param Exception $prev Previously thrown exception.
+     * @param object $prev Previously thrown exception.
      */
     public function __construct($msg, $namespaceName, $className, \Exception $prev = NULL) {
         parent::__construct($msg, 1, $prev);

@@ -23,7 +23,7 @@ function foo($i) {
     return true;
 }
 
-class FooClass {
+class FooClass extends \cfd\core\Object {
     public static function staticFunc($i) {
         echo "FooClass::staticFunc() -> " . $i . "<br/>";
         return true;
@@ -43,11 +43,7 @@ class FooClass {
 }
 
 try {
-    echo "Root directory: " . MainSettings::getRootDirectoryPath() . "<br/>";
-    echo "Core directory: " . \cfd\core\CoreInfo::getCoreDirectoryPath() . "<br/>";
-    echo "Core version string: " . \cfd\core\CoreInfo::getCoreVersion() . "<br/>";
-
-    $s = new cfd\core\NormalSignal();
+    $s = new cfd\core\ConditionalSignal();
     $s->connect("foo");
     $s->connect("fo");
     $s->connect("FooClass::staticFunc");
@@ -57,16 +53,17 @@ try {
     $s->connect( array($obj, "normalFunc2") );
     $s->connect( array($obj, "normalFunc3") );
 
-    echo "<br/><br/>";
+    echo '<pre>';
     var_dump( $s->getConnectedFunctions() );
+    echo '</pre>';
 
-    //$s->disconnectAllFrom($obj);
+    $obj->destroy();
 
-    echo "<br/><br/>";
+    echo '<pre>';
     var_dump( $s->getConnectedFunctions() );
+    echo '</pre>';
 
-    echo "<br/><br/>";
-    var_dump( $s->emit(123456) );
+    $s->emit(123321);
 }
 catch(\cfd\core\ClassNotFoundException $e) {
     echo $e->getMessage() . " Class name: " . $e->getClassName() . "<br/>";

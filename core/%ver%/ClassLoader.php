@@ -30,11 +30,9 @@ require_once("CoreInfo.php");
  */
 class ClassLoader {
     private static $sLoader;
-    private $mPaths;
+    private $mPaths = array();
 
-    private function __construct() {
-        $this->mPaths = array();
-    }
+    private function __construct() { }
 
     private function includeClassFile($path, $className) {
         if($path == "") $path = "./";

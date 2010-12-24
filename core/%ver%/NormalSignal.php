@@ -26,7 +26,9 @@ class NormalSignal extends Signal {
     /**
      * Constructs new NormalSignal object.
      */
-    public function __construct() { }
+    public function __construct() {
+        parent::__construct();
+    }
 
     /**
      * Destructs object by calling parent's destructor.
