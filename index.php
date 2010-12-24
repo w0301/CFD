@@ -13,32 +13,32 @@
 
 require_once("MainSettings.php");
 
-function fo($i) {
+function fo(&$stopAfterThis, $i) {
     echo "fo() -> " . $i . "<br/>";
-    return true;
+    $stopAfterThis = false;
 }
 
-function foo($i) {
+function foo(&$stopAfterThis, $i) {
     echo "foo() -> " . $i . "<br/>";
-    return true;
+    $stopAfterThis = false;
 }
 
 class FooClass extends \cfd\core\Object {
-    public static function staticFunc($i) {
+    public static function staticFunc(&$stopAfterThis, $i) {
         echo "FooClass::staticFunc() -> " . $i . "<br/>";
-        return true;
+        $stopAfterThis = false;
     }
-    public function normalFunc($i) {
+    public function normalFunc(&$stopAfterThis, $i) {
         echo "FooClassObj->normalFunc() -> " . $i . "<br/>";
-        return true;
+        $stopAfterThis = true;
     }
-    public function normalFunc2($i) {
+    public function normalFunc2(&$stopAfterThis, $i) {
         echo "FooClassObj->normalFunc2() -> " . $i . "<br/>";
-        return true;
+        $stopAfterThis = true;
     }
-    public function normalFunc3($i) {
+    public function normalFunc3(&$stopAfterThis, $i) {
         echo "FooClassObj->normalFunc3() -> " . $i . "<br/>";
-        return true;
+        $stopAfterThis = false;
     }
 }
 

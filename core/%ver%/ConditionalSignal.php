@@ -14,14 +14,24 @@
 namespace cfd\core;
 
 /**
- * @brief Signal that calls function only if condition is met.
+ * @brief Reverse calling signal with condition.
  *
- * This signal calls connected function only if given condition
- * is met. Condition is tested before each calling and if it's
- * true call is performed otherwise calling is stopped and emit
- * function returns. For now condition is: "%lastreturn% !== true"
- * and can not be changed (%lastreturn% is return value of function that
- * was called most recently, before calling first function always false).
+ * This signal calls connected function only if previously called
+ * function report that it should keep calling. This reporting is
+ * done by reference which is sent as first argument by signal.
+ * Each signal of this class send reference variable as first parameter.
+ * If you want that function that you connected to be last that is called
+ * you have to set reference to @b true (last connected function is called first in this signal).
+ * This type of signal is used at places that has some default behaviour for
+ * doing things and use can replace this behaviour by his own (for example strings
+ * translations - default is not to translate them but modules can add function that
+ * translates them using database's list of translations, but if database lookup fails function
+ * does not set reference to @b true and default behaviour will be done by previously connected function).
+ * Prototype of function that is connected to this signal has to look like this:
+ * @code
+ *  function func(&$stopAfterThis, ...);   // replace '...' by any other arguments
+ *                                         // that are signal's object depended
+ * @endcode
  *
  * @see \\cfd\\core\\Signal
  */
@@ -44,24 +54,38 @@ class ConditionalSignal extends Signal {
     /**
      * @brief Calls connected functions.
      *
-     * This emit() function calls connected function only
-     * if object's condition is met. It also calls functions
-     * in reverse order => function that was connected as last
-     * is called as first.
+     * This emit() function calls connected functions.
+     * Firstly it calls last connected function. This function
+     * has to get reference argument as its first argument and set
+     * this argument to @b true if signal should stop calling functions.
+     * If function does not set this reference variable to @true signal
+     * will call last but one connected function.
      *
-     * @return Array of return values of called functions as described in Signal::emit().
+     * @return Return value of function that set reference variable to @b true,
+     * @b false when there was not such function connected (use '===' to test!).
+     * Note that only one value is returned and this value is not in array (this
+     * behaviour is different from one that is described in Signal::emit()).
      */
     public function emit() {
-        $params = func_get_args();
-        $ret = array();
+        $stopCalling = false;
+        $params = array(0 => &$$stopCalling);
+        $emit_params = func_get_args();
+        foreach($emit_params as &$val) {
+            $params[] = $val;
+        }
+
         $val = end($this->mFunctionsList);
-        $ret[] = array( $val, $lastRet = self::callFunction($val, $params) );
+        $lastRet = self::callFunction($val, $params);
+        if($params[0] === true) {
+            return $lastRet;
+        }
         while( ($val = prev($this->mFunctionsList)) !== false ) {
-            if($lastRet !== true) {
-                $ret[] = array( $val, $lastRet = self::callFunction($val, $params) );
+            $lastRet = self::callFunction($val, $params);
+            if($params[0] === true) {
+                return $lastRet;
             }
         }
-        return $ret;
+        return false;
     }
 
 }
