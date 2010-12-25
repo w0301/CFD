@@ -13,6 +13,8 @@
 
 namespace cfd\core;
 
+require_once("Signal.php");
+
 /**
  * @brief Reverse calling signal with condition.
  *
@@ -23,12 +25,12 @@ namespace cfd\core;
  * This reference points to variable that holds value @b true. If this variable
  * is @b true after function return signal will not call any other function. So
  * if you want to call early connected functions set this variable to false in your
- * connected function (for example if function fails to do its job). This type of signal 
- * is used at places that has some default behaviour for doing things and use can replace 
- * this behaviour by his own (for example strings translations - default is not to translate 
- * them but modules can add function that translates them using database's list of translations, 
- * but if database lookup fails function does not set reference to @b true and default behaviour 
- * will be done by previously connected function). Prototype of function that is connected to this 
+ * connected function (for example if function fails to do its job). This type of signal
+ * is used at places that has some default behaviour for doing things and use can replace
+ * this behaviour by his own (for example strings translations - default is not to translate
+ * them but modules can add function that translates them using database's list of translations,
+ * but if database lookup fails function does not set reference to @b true and default behaviour
+ * will be done by previously connected function). Prototype of function that is connected to this
  * signal has to look like this:
  * @code
  *  function func(&$stopAfterThis, ...);   // replace '...' by any other arguments
@@ -41,9 +43,11 @@ class ConditionalSignal extends Signal {
 
     /**
      * Constructs new ConditionalSignal object.
+     * 
+     * @param object $parent Parent of new object.
      */
-    public function __construct() {
-        parent::__construct();
+    public function __construct(Object $parent = NULL) {
+        parent::__construct($parent);
     }
 
     /**
@@ -64,7 +68,7 @@ class ConditionalSignal extends Signal {
      * will continue calling early connected functions but before call it sets
      * reference variable to @b true again.
      *
-     * @return @b Return @b value of first called function that doesn't set reference 
+     * @return @b Return @b value of first called function that doesn't set reference
      * variable to false. Or @b false if all called functions set reference
      * variable to false (use '===' to test return value).
      */
@@ -83,7 +87,7 @@ class ConditionalSignal extends Signal {
         }
         while( ($val = prev($this->mFunctionsList)) !== false ) {
             $params[0] = true;
-        	$lastRet = self::callFunction($val, $params);
+            $lastRet = self::callFunction($val, $params);
             if($params[0] === true) {
                 return $lastRet;
             }

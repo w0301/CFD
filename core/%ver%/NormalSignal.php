@@ -25,9 +25,11 @@ class NormalSignal extends Signal {
 
     /**
      * Constructs new NormalSignal object.
+     * 
+     * @param object $parent Parent of new object.
      */
-    public function __construct() {
-        parent::__construct();
+    public function __construct(Object $parent = NULL) {
+        parent::__construct($parent);
     }
 
     /**

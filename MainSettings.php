@@ -89,7 +89,17 @@ class MainSettings {
 
         // overriding PHP's function for autoloading
         function __autoload($className) {
-            \cfd\core\ClassLoader::getLoader()->loadClass($className);
+            $retVal = \cfd\core\ClassLoader::$sClassAutoloaded->emit($className);
+            if($retVal === false) {
+                $classNameSize = strlen($className);
+                $lastNsSeparatorI = strrpos($className, "\\");
+                $namespaceName = substr($className, 0, $lastNsSeparatorI);
+                $className = substr($className, $lastNsSeparatorI + 1, $classNameSize - $lastNsSeparatorI - 1);
+                throw new \cfd\core\ClassNotFoundException(
+                		"Desired class was not found and can not be loaded.",
+                         $namespaceName, $className
+                         );
+            }
         }
     }
 

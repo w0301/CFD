@@ -13,63 +13,14 @@
 
 require_once("MainSettings.php");
 
-
-function foo(&$stopAfterThis, $i) {
-    echo "foo() failed -> " . $i . "<br/>";
-    $stopAfterThis = false;
-}
-
-function fo(&$stopAfterThis, $i) {
-    echo "fo() failed -> " . $i . "<br/>";
-    $stopAfterThis = false;
-}
-
-
-class FooClass extends \cfd\core\Object {
-    public static function staticFunc(&$stopAfterThis, $i) {
-        echo "FooClass::staticFunc() failed -> " . $i . "<br/>";
-        $stopAfterThis = false;
-    }
-    public function normalFunc(&$stopAfterThis, $i) {
-        echo "FooClassObj->normalFunc() failed -> " . $i . "<br/>";
-        $stopAfterThis = false;
-    }
-    public function normalFunc2(&$stopAfterThis, $i) {
-        echo "FooClassObj->normalFunc2() failed -> " . $i . "<br/>";
-        $stopAfterThis = false;
-    }
-    public function normalFunc3(&$stopAfterThis, $i) {
-        echo "FooClassObj->normalFunc3() failed -> " . $i . "<br/>";
-        $stopAfterThis = false;
-    }
-}
-
 try {
-    $s = new cfd\core\ConditionalSignal();
-    $s->connect("foo");
-    $s->connect("fo");
-    $s->connect("FooClass::staticFunc");
 
-    $obj = new FooClass();
-    $s->connect( array($obj, "normalFunc") );
-    $s->connect( array($obj, "normalFunc2") );
-    $s->connect( array($obj, "normalFunc3") );
-
-    echo '<pre>';
-    var_dump( $s->getConnectedFunctions() );
-    echo '</pre>';
-
-    //$obj->destroy();
-
-    echo '<pre>';
-    var_dump( $s->getConnectedFunctions() );
-    echo '</pre>';
-
-    var_dump( $s->emit(123321) );
 }
 catch(\cfd\core\ClassNotFoundException $e) {
-    echo $e->getMessage() . " Class name: " . $e->getClassName() . "<br/>";
+    echo "Class was not found in CFD directories (" . $e->getMessage() . "). <br/>";
+    echo "Namespace of class: " . $e->getNamespaceName() . "<br/>";
+    echo "Name of class: " . $e->getClassName() . "<br/>";
 }
 catch(\Exception $e) {
-    echo $e->getMessage() . "<br/>";
+    echo "Exception occured: " . $e->getMessage() . "<br/>";
 }

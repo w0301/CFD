@@ -13,7 +13,9 @@
 
 namespace cfd\core;
 
+require_once("Object.php");
 require_once("CoreInfo.php");
+require_once("ConditionalSignal.php");
 
 /**
  * @brief Use to autoload classes.
@@ -28,11 +30,31 @@ require_once("CoreInfo.php");
  *
  * @see \\cfd\\core\\ClassNotFoundException
  */
-class ClassLoader {
+class ClassLoader extends Object {
     private static $sLoader;
     private $mPaths = array();
 
-    private function __construct() { }
+    /**
+     * @brief Signal that loads classes.
+     *
+     * This signal is emitted when class is about to be
+     * autoloaded - when it's not found and user wants to use it.
+     * This signal send only one argument and it's full class name
+     * that has to be loaded (with namespace name as prefix).
+     * This signal is of \\cfd\\core\\ConditionalSignal type so
+     * your connected functions has to follow rules descriped in
+     * its documentation (read it!). As default ClassLoader's function
+     * loadClass() is connected to this signal (there is global instance
+     * of ClassLoader class - see getLoader()).
+     * 
+     * Prototype example for signal:
+     * @code
+     * 	function func(&$succeed, $fullClassName);
+     * @endcode
+     * 
+     * @see getLoader(), loadClass()
+     */
+    public static $sClassAutoloaded;
 
     private function includeClassFile($path, $className) {
         if($path == "") $path = "./";
@@ -48,17 +70,42 @@ class ClassLoader {
         }
         return false;
     }
+    
+    /**
+     * Create new ClassLoader object.
+     * 
+     * @param object $parent Parent of new object.
+     */
+    public function __construct(Object $parent = NULL) { 
+        parent::__construct($parent);
+    }
+    
+    /**
+     * Destructs ClassLoader object.
+     */
+    public function __destruct() {
+        parent::__destruct();
+    }
 
     /**
      * @brief Static constructor for class.
      *
      * This function is called right after class definition.
-     * Please do not load this function on your own.
+     * Its purpose is to initialize static variables (signals etc).
+     * Please do not call this function on your own.
      */
     public static function __static() {
         if( is_object(self::$sLoader) ) return;
+        
+        // firstly initializing static variables
         self::$sLoader = new ClassLoader();
+        self::$sClassAutoloaded = new ConditionalSignal();
+        
+        // initializing default global ClassLoader object
         self::$sLoader->addPath( "cfd\\core\\", CoreInfo::getCoreDirectoryPath() );
+        
+        // connecting $sLoader's functions to signal
+        self::$sClassAutoloaded->connect( array(self::$sLoader, "loadClass") );
     }
 
     /**
@@ -91,10 +138,13 @@ class ClassLoader {
 
     /**
      * Try to load specific class using paths added by addPath() function.
+     * This function is called by $sClassAutoloaded signal.
      *
+     * @param boolean &$succeed Reference that is used to indicate signal if function
+     * succeed in doing its job or not => if not signal will call early connected function.
      * @param string $className Full qualified name of class (i.e. "\namespaceName\className").
      */
-    public function loadClass($className) {
+    public function loadClass(&$succeed, $className) {
         if( ($pos = strrpos($className, "\\")) !== false ) {
             $namespaceName = substr($className, 0, $pos + 1);
             $className = substr($className, $pos + 1, strlen($className) - strlen($namespaceName));
@@ -107,10 +157,7 @@ class ClassLoader {
                     }
                 }
                 if($included == false) {
-                    throw new ClassNotFoundException(
-                            "Desired class was not found and can not be loaded.",
-                            $namespaceName, $className
-                            );
+                    $succeed = false;
                 }
             }
         }

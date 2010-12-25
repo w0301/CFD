@@ -13,6 +13,8 @@
 
 namespace cfd\core;
 
+require_once("Exception.php");
+
 /**
  * @brief Exception that indicates bad type.
  *
