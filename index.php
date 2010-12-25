@@ -13,31 +13,33 @@
 
 require_once("MainSettings.php");
 
-function fo(&$stopAfterThis, $i) {
-    echo "fo() -> " . $i . "<br/>";
+
+function foo(&$stopAfterThis, $i) {
+    echo "foo() failed -> " . $i . "<br/>";
     $stopAfterThis = false;
 }
 
-function foo(&$stopAfterThis, $i) {
-    echo "foo() -> " . $i . "<br/>";
+function fo(&$stopAfterThis, $i) {
+    echo "fo() failed -> " . $i . "<br/>";
     $stopAfterThis = false;
 }
+
 
 class FooClass extends \cfd\core\Object {
     public static function staticFunc(&$stopAfterThis, $i) {
-        echo "FooClass::staticFunc() -> " . $i . "<br/>";
+        echo "FooClass::staticFunc() failed -> " . $i . "<br/>";
         $stopAfterThis = false;
     }
     public function normalFunc(&$stopAfterThis, $i) {
-        echo "FooClassObj->normalFunc() -> " . $i . "<br/>";
-        $stopAfterThis = true;
+        echo "FooClassObj->normalFunc() failed -> " . $i . "<br/>";
+        $stopAfterThis = false;
     }
     public function normalFunc2(&$stopAfterThis, $i) {
-        echo "FooClassObj->normalFunc2() -> " . $i . "<br/>";
-        $stopAfterThis = true;
+        echo "FooClassObj->normalFunc2() failed -> " . $i . "<br/>";
+        $stopAfterThis = false;
     }
     public function normalFunc3(&$stopAfterThis, $i) {
-        echo "FooClassObj->normalFunc3() -> " . $i . "<br/>";
+        echo "FooClassObj->normalFunc3() failed -> " . $i . "<br/>";
         $stopAfterThis = false;
     }
 }
@@ -57,13 +59,13 @@ try {
     var_dump( $s->getConnectedFunctions() );
     echo '</pre>';
 
-    $obj->destroy();
+    //$obj->destroy();
 
     echo '<pre>';
     var_dump( $s->getConnectedFunctions() );
     echo '</pre>';
 
-    $s->emit(123321);
+    var_dump( $s->emit(123321) );
 }
 catch(\cfd\core\ClassNotFoundException $e) {
     echo $e->getMessage() . " Class name: " . $e->getClassName() . "<br/>";
