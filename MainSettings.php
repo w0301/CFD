@@ -90,7 +90,7 @@ class MainSettings {
         // overriding PHP's function for autoloading
         function __autoload($className) {
             $retVal = \cfd\core\ClassLoader::$sClassAutoloaded->emit($className);
-            if($retVal === false) {
+            if( !\cfd\core\ClassLoader::$sClassAutoloaded->wasLastEmitSuccessful() ) {
                 $classNameSize = strlen($className);
                 $lastNsSeparatorI = strrpos($className, "\\");
                 $namespaceName = substr($className, 0, $lastNsSeparatorI);

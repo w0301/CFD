@@ -46,12 +46,12 @@ class ClassLoader extends Object {
      * its documentation (read it!). As default ClassLoader's function
      * loadClass() is connected to this signal (there is global instance
      * of ClassLoader class - see getLoader()).
-     * 
+     *
      * Prototype example for signal:
      * @code
-     * 	function func(&$succeed, $fullClassName);
+     * 	function func($fullClassName, &$succeed);
      * @endcode
-     * 
+     *
      * @see getLoader(), loadClass()
      */
     public static $sClassAutoloaded;
@@ -70,16 +70,16 @@ class ClassLoader extends Object {
         }
         return false;
     }
-    
+
     /**
      * Create new ClassLoader object.
-     * 
+     *
      * @param object $parent Parent of new object.
      */
-    public function __construct(Object $parent = NULL) { 
+    public function __construct(Object $parent = NULL) {
         parent::__construct($parent);
     }
-    
+
     /**
      * Destructs ClassLoader object.
      */
@@ -96,14 +96,14 @@ class ClassLoader extends Object {
      */
     public static function __static() {
         if( is_object(self::$sLoader) ) return;
-        
+
         // firstly initializing static variables
         self::$sLoader = new ClassLoader();
         self::$sClassAutoloaded = new ConditionalSignal();
-        
+
         // initializing default global ClassLoader object
         self::$sLoader->addPath( "cfd\\core\\", CoreInfo::getCoreDirectoryPath() );
-        
+
         // connecting $sLoader's functions to signal
         self::$sClassAutoloaded->connect( array(self::$sLoader, "loadClass") );
     }
@@ -140,11 +140,11 @@ class ClassLoader extends Object {
      * Try to load specific class using paths added by addPath() function.
      * This function is called by $sClassAutoloaded signal.
      *
+     * @param string $className Full qualified name of class (i.e. "\namespaceName\className").
      * @param boolean &$succeed Reference that is used to indicate signal if function
      * succeed in doing its job or not => if not signal will call early connected function.
-     * @param string $className Full qualified name of class (i.e. "\namespaceName\className").
      */
-    public function loadClass(&$succeed, $className) {
+    public function loadClass($className, &$succeed) {
         if( ($pos = strrpos($className, "\\")) !== false ) {
             $namespaceName = substr($className, 0, $pos + 1);
             $className = substr($className, $pos + 1, strlen($className) - strlen($namespaceName));
