@@ -80,6 +80,7 @@ class ConditionalSignal extends Signal {
      * @see wasLastEmitSuccessful()
      */
     public function emit() {
+        if( count($this->mFunctionsList) == 0 ) return false;
         $this->mLastEmitSucceed = false;
         $params = array();
         $emit_params = func_get_args();

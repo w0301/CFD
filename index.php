@@ -14,7 +14,7 @@
 require_once("MainSettings.php");
 
 try {
-
+    //echo \cfd\core\I18n::tr( $_SERVER['HTTP_ACCEPT_LANGUAGE'], "ss" );
 }
 catch(\cfd\core\ClassNotFoundException $e) {
     echo "Class was not found in CFD directories (" . $e->getMessage() . "). <br/>";

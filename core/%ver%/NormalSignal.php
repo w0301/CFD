@@ -25,7 +25,7 @@ class NormalSignal extends Signal {
 
     /**
      * Constructs new NormalSignal object.
-     * 
+     *
      * @param object $parent Parent of new object.
      */
     public function __construct(Object $parent = NULL) {
@@ -47,6 +47,7 @@ class NormalSignal extends Signal {
      * any special rules for function calling.
      *
      * @return Array of return values as described in Signal::emit().
+     * This array is empty if there wasn't any connected function.
      */
     public function emit() {
         $params = func_get_args();
