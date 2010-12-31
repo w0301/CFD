@@ -32,18 +32,18 @@ class I18n extends Object {
      * This signal is used as connection point for all
      * strings translators functions. This signal is of
      * type ConditionalSignal and it sends 4 arguments -
-     * domain for string that is being translated, singular
-     * form of string, plural form of string and number that
-     * shows quantity that is used to determine if plural form
-     * should be used. Domain is empty string if default domain
-     * should be used (note that each module should have own domain),
-     * plural form string is empty if there is no plural form for
-     * string (in this case last argument is 1).
+     * domain of string's translation, string's locale (respectively language),
+     * string that contains singular form or array that contains singular
+     * form + all plural forms and last argument is number that shows quantity that
+     * is used to determine if plural or singular form should be used.
+     * Domain is empty string if default domain should be used (note that
+     * each module should have own domain), second argument is array only
+     * if there is any plural form.
      *
      * Prototype of function that can be connected to this
      * signal should looks like this:
      * @code
-     * 	function func($domainName, $singularStr, $pluralStr, $n, &$succed);
+     * 	function func($domainName, $strsLocale, $strs, $n, &$succed);
      * @endcode
      *
      * @see \\cfd\\core\\ConditionalSignal
@@ -52,8 +52,9 @@ class I18n extends Object {
 
     /**
      * Holds name of locale that's language is
-     * used to write all strings literal in CFD
-     * source files. This is always "en"!
+     * used for this I18n class. Define own variable
+     * in module's I18n class if you want to use any
+     * other locale.
      */
     public static $sStringsLocale = "en";
 
@@ -95,21 +96,21 @@ class I18n extends Object {
      *
      * @param string $domainName Name of domain that will be looked up for
      * string translation.
-     * @param string $str1 Singular form of string that will be translated.
-     * @param string $str2 Plural form of string that will be translated.
+     * @param mixed $strs String containing singular form or array containg
+     * singular form plus all plural form (2. option only string has plural form).
      * @param integer $n Number that is used to determine if plural form
      * or singular form shoul be used. This number usually contains the quantity
      * that is used in the string. This quantity is then used in translator to
      * determine if singular or plural form should be used.
      * @return Correctly translated string if such was returned by connected
      * functions or untranslated string if translation was not found (if $n == 1 singular
-     * form, otherwise plural form)
+     * form, otherwise plural form - index 1 in array)
      * @see tr(), $sTranslateString
      */
-    public static function translate($domainName, $str1, $str2 = "", $n = 1) {
-        $retStr = self::$sTranslateString->emit($domainName, $str1, $str2, $n);
+    public static function translate($domainName, $strs, $n = 1) {
+        $retStr = self::$sTranslateString->emit($domainName, static::$sStringsLocale, $strs, $n);
         if( !self::$sTranslateString->wasLastEmitSuccessful() ) {
-            return $n == 1 ? $str1 : $str2;
+            return is_array($strs) ? ($n != 1 ? $strs[1] : $strs[0]) : $strs;
         }
         return $retStr;
     }
@@ -122,16 +123,15 @@ class I18n extends Object {
      * class to use module's domain easly.
      * Note that this is static function.
      *
-     * @param string $str1 Singular form of string.
-     * @param string $str2 Plural form of string, or empty string if there is no
-     * plural form.
+     * @param string $strs Singular form in string or singular form plural
+     * form/s in array.
      * @param integer $n Number that is used to determine if singular or plural
      * form should be used.
      * @return Return value of translate() function.
      * @see translate(), $sTranslateString
      */
-    public static function tr($str1, $str2 = "", $n = 1) {
-        return self::translate("", $str1, $str2, $n);
+    public static function tr($strs, $n = 1) {
+        return self::translate("", $strs, $n);
     }
 
 } I18n::__static();
