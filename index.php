@@ -13,30 +13,16 @@
 
 require_once("MainSettings.php");
 
-class I18n extends \cfd\core\I18n {
-	// if you want you can change language settings by
-	// overriding these functions
-	public static function getLiteralsLocale() {
-		return "sk";
-	}
-	public static function getPluralsExpression() {
-		return "nplurals=3; plural=...;";	// replace '...' with right expression
-	}
+class Trans extends \cfd\core\Object implements \cfd\core\StringTranslator {
+    public function translateString($domainName, $strsLocale, $strs, $n, &$succed) {
+        return $strsLocale;
 
-	public static function tr($strs, $n = 1) {
-		return parent::translate("MyModule", $strs, $n);	// note the domain name
-	}
-}
-
-function func($domainName, $strsLocale, $strs, $n, &$succed) {
-    //$succed = false;
-    return "$domainName -- $strsLocale -- $strs -- $n";
+    }
 }
 
 try {
-    I18n::$sTranslateString->connect("func");
-    echo I18n::tr( array($_SERVER['HTTP_ACCEPT_LANGUAGE'], "plural") ) . "<br/>";
-    echo I18n::getLiteralsLocale() . "<br/>";
+    \cfd\core\I18n::addTranslator( new Trans() );
+    echo \cfd\core\I18n::tr( array($_SERVER['HTTP_ACCEPT_LANGUAGE'], "plural") ) . "<br/>";
 }
 catch(\cfd\core\ClassNotFoundException $e) {
     echo "Class was not found in CFD directories (" . $e->getMessage() . "). <br/>";

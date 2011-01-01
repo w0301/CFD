@@ -73,7 +73,7 @@ class I18n extends Object {
      *
      * @see \\cfd\\core\\ConditionalSignal
      */
-    public static $sTranslateString;
+    protected static $sTranslateString;
 
     /**
      * @brief Name of literal's locale.
@@ -130,6 +130,34 @@ class I18n extends Object {
 
         // create signal that's emit returns translated string
         self::$sTranslateString = new ConditionalSignal();
+    }
+
+    /**
+     * @brief Adds new string translator.
+     *
+     * This function simple connects function that translates
+     * strings to $sTranslateString signal.
+     *
+     * @param StringTranslator $translator Translator object that's function will
+     * be connected to $sTranslateString signal.
+     * * @see addTranslator(), $sTranslateString
+     */
+    public static function addTranslator(StringTranslator $translator) {
+        self::$sTranslateString->connect( array($translator, "translateString") );
+    }
+
+    /**
+     * @brief Remove string translator.
+     *
+     * This function simple disconnects function that translates
+     * string from $sTranslateString signal.
+     *
+     * @param StringTranslator $translator Translator object that's function
+     * will be disconnected from $sTranslateString signal.
+     * @see addTranslator(), $sTranslateString
+     */
+    public static function removeTranslator(StringTranslator $translator) {
+        self::$sTranslateString->disconnect( array($translator, "translateString") );
     }
 
     /**
