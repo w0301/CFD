@@ -23,6 +23,29 @@ namespace cfd\core;
  * do not provide any info about user's language or locale.
  * This informations are determined in translators objects.
  *
+ * Subclass this class in your own module in this way:
+ * @code
+ * 	namespace cfd\modules\MyModule;
+ *
+ *  class I18n extends \cfd\core\I18n {
+ *  	// if you want you can change language settings by
+ *  	// overriding these functions
+ *  	public static function getLiteralsLocale() {
+ *  		return "sk";
+ *  	}
+ *  	public static function getPluralsExpression() {
+ *  		return "nplurals=3; plural=...;";	// replace '...' with right expression
+ *  	}
+ *
+ *  	public static function tr($strs, $n = 1) {
+ *  		return parent::translate("MyModule", $strs, $n);	// note the domain name
+ *  	}
+ *  }
+ * @endcode
+ * When you do this subclass you can translate literals in your
+ * module's code by calling I18n::tr() function. And this call will
+ * translate your strings using the domain that you chose in tr() function.
+ *
  * @see tr(), $sTranslateString
  */
 class I18n extends Object {
@@ -38,7 +61,9 @@ class I18n extends Object {
      * is used to determine if plural or singular form should be used.
      * Domain is empty string if default domain should be used (note that
      * each module should have own domain), second argument is array only
-     * if there is any plural form.
+     * if there is any plural form. The function has to return translation
+     * of string on succes or when succes is not achieved it has to set $succed
+     * variable to false.
      *
      * Prototype of function that can be connected to this
      * signal should looks like this:
@@ -51,19 +76,33 @@ class I18n extends Object {
     public static $sTranslateString;
 
     /**
-     * Holds name of locale that's language is
-     * used for this I18n class. Define own variable
-     * in module's I18n class if you want to use any
-     * other locale.
+     * @brief Name of literal's locale.
+     *
+     * Override this function in your module to
+     * change locale for your module's literals.
+     *
+     * @return Name of locale that's language is
+     * used for this I18n class. For core's I18n
+     * class returns "en";
      */
-    public static $sStringsLocale = "en";
+    public static function getLiteralsLocale() {
+    	return "en";
+    }
 
     /**
-     * Holds information about how are plural forms determined
-     * for default string's literals locale. This rule is always
-     * valid for locale stored in $sStringsLocale variable.
+     * @brief Expression for plural forms.
+     *
+     * Override this function to return your own expression.
+     * Do this only when you want override getLiteralsLocale()
+     * as well.
+     *
+     * @return Expression in string that represent rule for
+     * plural from determination. For core's I18n class this
+     * returns "nplurals=2; plural=n != 1;".
      */
-    public static $sStringsPlurals = "nplurals=2; plural=n != 1;";
+    public static function getPluralsExpression() {
+    	return "nplurals=2; plural=n != 1;";
+    }
 
     /**
      * Creates new object.
@@ -85,6 +124,10 @@ class I18n extends Object {
      * call this function, it's called automatically!
      */
     public static function __static() {
+        static $called = false;
+        if($called === true) return;
+        $called = true;
+
         // create signal that's emit returns translated string
         self::$sTranslateString = new ConditionalSignal();
     }
@@ -108,7 +151,7 @@ class I18n extends Object {
      * @see tr(), $sTranslateString
      */
     public static function translate($domainName, $strs, $n = 1) {
-        $retStr = self::$sTranslateString->emit($domainName, static::$sStringsLocale, $strs, $n);
+        $retStr = self::$sTranslateString->emit($domainName, static::getLiteralsLocale(), $strs, $n);
         if( !self::$sTranslateString->wasLastEmitSuccessful() ) {
             return is_array($strs) ? ($n != 1 ? $strs[1] : $strs[0]) : $strs;
         }
