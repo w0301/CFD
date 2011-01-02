@@ -21,7 +21,10 @@ namespace cfd\core;
  * main class to indicate that module is extending any functionality.
  * There should be one functionality interface for every feature that
  * needs some function calls after module is loaded (functions that has
- * to be called are registered by special function).
+ * to be called are registered by special function). Functions that connects
+ * functionality's implementers to feature are always static functions and they
+ * are declared in functionality owner class (for example \\cfd\\core\\I18n or
+ * \\cfd\\core\\ClassAutoloading).
  *
  * This interface do not declare any functions. It is used only
  * for dynamic recognition of functionality interfaces of module's
@@ -30,7 +33,7 @@ namespace cfd\core;
  * Some examples for functionalities are string translators.
  * These translators are implemented in modules and when these
  * modules are loaded their functionality function is connected
- * to right singnal.
+ * to right signal.
  */
 interface ModuleFunctionality {
 

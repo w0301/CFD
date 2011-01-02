@@ -42,20 +42,6 @@ class MainSettings {
     private static $sRootDirectory;
 
     /**
-     * This variable holds default paths for ClassLoader
-     * object. Namespace name is a key and path is a value.
-     * Substring "%root%" will be substituted with path to
-     * root directory of CFD installation and "%core%" substring
-     * will be substituted with path to core files directory.
-     * Core directory is assigned to \cfd\core namespace by default
-     * so you don't have to list it in this array.
-     */
-    private static $sClassLoaderPaths = array(
-        "cfd\\modules\\" => "%root%/modules/",
-        "cfd\\modules\\" => "%root%/sites/all/modules/",
-    );
-
-    /**
      * @brief Static constructor.
      *
      * This function is called automatically. User doesn't
@@ -79,27 +65,11 @@ class MainSettings {
             die("Low level fatal error: Directory with core files and classes does not exist: " . self::$sCoreDirectory);
         }
 
-        // setting up ClassLoader global object
-        require_once(self::getCoreDirectoryPath() . "/ClassLoader.php");
-        foreach (self::$sClassLoaderPaths as $namespace => $path) {
-            $path = str_replace("%root%", self::getRootDirectoryPath(), $path);
-            $path = str_replace("%core%", self::getCoreDirectoryPath(), $path);
-            \cfd\core\ClassLoader::getLoader()->addPath($namespace, $path);
-        }
+        // overriding PHP's function for autoloading classes
+        require_once(self::getCoreDirectoryPath() . "/ClassAutoloading.php");
 
-        // overriding PHP's function for autoloading
         function __autoload($className) {
-            $retVal = \cfd\core\ClassLoader::$sClassAutoloaded->emit($className);
-            if( !\cfd\core\ClassLoader::$sClassAutoloaded->wasLastEmitSuccessful() ) {
-                $classNameSize = strlen($className);
-                $lastNsSeparatorI = strrpos($className, "\\");
-                $namespaceName = substr($className, 0, $lastNsSeparatorI);
-                $className = substr($className, $lastNsSeparatorI + 1, $classNameSize - $lastNsSeparatorI - 1);
-                throw new \cfd\core\ClassNotFoundException(
-                		"Desired class was not found and can not be loaded.",
-                         $namespaceName, $className
-                         );
-            }
+            \cfd\core\ClassAutoloading::autoload($className);
         }
     }
 

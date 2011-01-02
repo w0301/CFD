@@ -13,6 +13,8 @@
 
 namespace cfd\core;
 
+require_once("Object.php");
+
 /**
  * @brief Base class for all Signal classes.
  *
@@ -39,7 +41,7 @@ abstract class Signal extends Object {
      * @brief Constructs the object.
      *
      * This constructor calls parent's one.
-     * 
+     *
      * @param object $parent Parent of new object.
      */
     public function __construct(Object $parent = NULL) {

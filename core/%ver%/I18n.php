@@ -25,7 +25,7 @@ namespace cfd\core;
  *
  * Subclass this class in your own module in this way:
  * @code
- * 	namespace cfd\modules\MyModule;
+ *  namespace cfd\modules\MyModule;
  *
  *  class I18n extends \cfd\core\I18n {
  *  	// if you want you can change language settings by
@@ -48,7 +48,7 @@ namespace cfd\core;
  *
  * @see tr(), $sTranslateString
  */
-class I18n extends Object {
+class I18n {
     /**
      * @brief Connection point for strings translators.
      *

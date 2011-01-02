@@ -16,7 +16,7 @@ namespace cfd\core;
 /**
  * @brief Functionality that translates strings.
  *
- * This functionality interface is usrable for modules
+ * This functionality interface is useable for modules
  * that are suppose to translate strings. Each module
  * that wants to do string translations has to implement
  * this interface.
@@ -43,10 +43,10 @@ interface StringTranslator extends ModuleFunctionality {
      * that is going to be translated.
      * @param integer $n Number that is used to determine which plural form should be
      * used. Put this number to plural expression.
-     * @param boolean $succed Variable that has to be set to false if string translation
+     * @param boolean $succeed Variable that has to be set to false if string translation
      * was not successful.
      * @return String translation if translation was successful, otherwise $succed is
      * set to false and return variable is pointless.
      */
-    public function translateString($domainName, $strsLocale, $strs, $n, &$succed);
+    public function translateString($domainName, $strsLocale, $strs, $n, &$succeed);
 }

@@ -14,9 +14,8 @@
 require_once("MainSettings.php");
 
 class Trans extends \cfd\core\Object implements \cfd\core\StringTranslator {
-    public function translateString($domainName, $strsLocale, $strs, $n, &$succed) {
+    public function translateString($domainName, $strsLocale, $strs, $n, &$succeed) {
         return $strsLocale;
-
     }
 }
 
