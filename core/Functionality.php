@@ -16,12 +16,11 @@ namespace cfd\core;
 /**
  * @brief Base interface for all functionalities.
  *
- * This interface is base for all module functionality
- * interfaces. Such interfaces can be implemented by module's
- * main class to indicate that module is extending any functionality.
+ * This interface is base for all functionality
+ * interfaces. Such interfaces can be implemented by any
+ * class to indicate that clas is extending any functionality.
  * There should be one functionality interface for every feature that
- * needs some function calls after module is loaded (functions that has
- * to be called are registered by special function). Functions that connects
+ * can be extended by this way. Functions that connects
  * functionality's implementers to feature are always static functions and they
  * are declared in functionality owner class (for example \\cfd\\core\\I18n or
  * \\cfd\\core\\ClassAutoloading).
@@ -31,10 +30,10 @@ namespace cfd\core;
  * main class.
  *
  * Some examples for functionalities are string translators.
- * These translators are implemented in modules and when these
- * modules are loaded their functionality function is connected
+ * These translators are implemented in module's plugins and when these
+ * plugins are loaded their functionality function is connected
  * to right signal.
  */
-interface ModuleFunctionality {
+interface Functionality {
 
 }

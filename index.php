@@ -13,15 +13,13 @@
 
 require_once("MainSettings.php");
 
-class Trans extends \cfd\core\Object implements \cfd\core\StringTranslator {
-    public function translateString($domainName, $strsLocale, $strs, $n, &$succeed) {
-        return $strsLocale;
-    }
-}
-
 try {
-    \cfd\core\I18n::addTranslator( new Trans() );
-    echo \cfd\core\I18n::tr( array($_SERVER['HTTP_ACCEPT_LANGUAGE'], "plural") ) . "<br/>";
+    $obj = new cfd\core\NormalSignal();
+    $obj->connect("cfd\core\I18n::tr");
+
+    echo "<pre>";
+    var_dump( $obj->emit( array($_SERVER['HTTP_ACCEPT_LANGUAGE'], "plural") ) );
+    echo "</pre>";
 }
 catch(\cfd\core\ClassNotFoundException $e) {
     echo "Class was not found in CFD directories (" . $e->getMessage() . "). <br/>";

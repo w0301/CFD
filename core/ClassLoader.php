@@ -13,7 +13,7 @@
 
 namespace cfd\core;
 
-require_once("ModuleFunctionality.php");
+require_once("Functionality.php");
 
 /**
  * @brief Functionality for class loaders.
@@ -21,14 +21,14 @@ require_once("ModuleFunctionality.php");
  * This functionality is implemented by all class loaders.
  * Actually there is only one - \\cfd\\core\\DefaultClassLoader.
  * You will probably never need to implement this functionality in
- * your modules but if you would like you can.
+ * your plugins but if you would like you can.
  *
  * Note that only \\cfd\\core\\Object subclasses can implement
  * this interface.
  *
  * @see \\cfd\\core\\DefaultClassLoader, \\cfd\\core\\ClassAutoloading
  */
-interface ClassLoader extends ModuleFunctionality {
+interface ClassLoader extends Functionality {
     /**
      * @brief Function that loads classes.
      *

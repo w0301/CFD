@@ -24,10 +24,20 @@ namespace cfd\core;
  */
 class CoreInfo {
     /**
-     * @return Version string of core files.
+	 * This variable specifies version of core files.
+	 * This is information that is used to determine
+	 * modules compatibility => it's really important
+	 * to update this variable whenever there might be
+	 * any compatibility issues with core files.
+	 */
+    private static $sCoreVersion = "dev";
+
+    /**
+     * @return Version string of core files. Used mainly
+     * for compatibility determination.
      */
     public static function getCoreVersion() {
-        return \MainSettings::getCoreVersion();
+        return self::$sCoreVersion;
     }
 
     /**

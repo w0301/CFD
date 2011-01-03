@@ -36,15 +36,19 @@ namespace cfd\core;
  *  	public static function getPluralsExpression() {
  *  		return "nplurals=3; plural=...;";	// replace '...' with right expression
  *  	}
+ *		public static function getStringsDomain() {
+ *       	return "MyModule";		// returns domain name for this module - should be
+ *       							// same as module name
+ *   	}
  *
- *  	public static function tr($strs, $n = 1) {
- *  		return parent::translate("MyModule", $strs, $n);	// note the domain name
- *  	}
  *  }
  * @endcode
  * When you do this subclass you can translate literals in your
  * module's code by calling I18n::tr() function. And this call will
  * translate your strings using the domain that you chose in tr() function.
+ *
+ * To allow static function overrides there is always used keyword
+ * @b static instead of @b self.
  *
  * @see tr(), $sTranslateString
  */
@@ -105,6 +109,19 @@ class I18n {
     }
 
     /**
+     * @brief Domain for strings.
+     *
+     * Override this function to use different domain.
+     *
+     * @return Name of domain that should be looked for
+     * string translations. For core I18n class this
+     * is always empty string ("").
+     */
+    public static function getStringsDomain() {
+        return "";
+    }
+
+    /**
      * Creates new object.
      * @param object $parent Parent of new object.
      */
@@ -162,7 +179,9 @@ class I18n {
 
     /**
      * This function emits $sTranslateString signal and if emit
-     * was successful returns the translated string.
+     * was successful returns the translated string. Override
+     * this only if you want change the way how is this signal emited.
+     *
      * Note that this is static function.
      *
      * @param string $domainName Name of domain that will be looked up for
@@ -178,7 +197,7 @@ class I18n {
      * form, otherwise plural form - index 1 in array)
      * @see tr(), $sTranslateString
      */
-    public static function translate($domainName, $strs, $n = 1) {
+    protected static function translate($domainName, $strs, $n = 1) {
         $retStr = self::$sTranslateString->emit($domainName, static::getLiteralsLocale(), $strs, $n);
         if( !self::$sTranslateString->wasLastEmitSuccessful() ) {
             return is_array($strs) ? ($n != 1 ? $strs[1] : $strs[0]) : $strs;
@@ -189,9 +208,12 @@ class I18n {
     /**
      * @brief Shortcut for translate() function.
      *
-     * This function calls function translate() with empty
-     * domain name. Override this function in module's I18n
-     * class to use module's domain easly.
+     * This function calls function translate() with domain name
+     * returned by getStringsDomain() function. Override that function
+     * if you want change domain name. This function is marked as final
+     * so it can't be overrided if you want change any behaviour
+     * of string translating override getStringsDomain() or translate() function.
+     *
      * Note that this is static function.
      *
      * @param string $strs Singular form in string or singular form plural
@@ -199,10 +221,10 @@ class I18n {
      * @param integer $n Number that is used to determine if singular or plural
      * form should be used.
      * @return Return value of translate() function.
-     * @see translate(), $sTranslateString
+     * @see translate(), getStringsDomain(), $sTranslateString
      */
-    public static function tr($strs, $n = 1) {
-        return self::translate("", $strs, $n);
+    public final static function tr($strs, $n = 1) {
+        return static::translate(static::getStringsDomain(), $strs, $n);
     }
 
 } I18n::__static();

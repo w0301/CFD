@@ -16,8 +16,8 @@ namespace cfd\core;
 /**
  * @brief Functionality that translates strings.
  *
- * This functionality interface is useable for modules
- * that are suppose to translate strings. Each module
+ * This functionality interface is useable for plugins
+ * that are suppose to translate strings. Each plugin
  * that wants to do string translations has to implement
  * this interface.
  *
@@ -26,7 +26,7 @@ namespace cfd\core;
  *
  * @see \\cfd\\core\\ModuleFunctionality, \\cfd\\core\\I18n
  */
-interface StringTranslator extends ModuleFunctionality {
+interface StringTranslator extends Functionality {
     /**
      * @brief Function that translate string.
      *
