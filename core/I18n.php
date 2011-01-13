@@ -101,7 +101,7 @@ class I18n {
      * as well.
      *
      * @return Expression in string that represent rule for
-     * plural from determination. For core's I18n class this
+     * plural form determination. For core's I18n class this
      * returns "nplurals=2; plural=n != 1;".
      */
     public static function getPluralsExpression() {

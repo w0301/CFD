@@ -71,6 +71,9 @@ class Object {
      *  unset($obj); // this destroys $obj reference and calls
      *               // destructor if $obj was last reference
      * @endcode
+     * Override this function if you need some extra work to be done
+     * for your object class after object is deleted. If you do so don't
+     * forget to call parent's destroy() function in your destroy() function.
      */
     public function destroy() {
         foreach($this->mConnectedSignals as $val) {
@@ -93,16 +96,16 @@ class Object {
      *
      * @param object $child Object that will be added as child.
      */
-    public function addChild(Object $child) { 
+    public function addChild(Object $child) {
         $this->mChildren[] = $child;
     }
 
     /**
      * @brief Removes child.
-     * 
+     *
      * This function removes given child from internal list
      * of children. Given child's parent will be set to NULL.
-     * 
+     *
      * @param object $child Child that will be removed.
      */
     public function removeChild(Object $child) {
@@ -112,21 +115,21 @@ class Object {
             $child->setParent(NULL);
         }
     }
-    
+
     /**
      * @brief Sets parent for object.
-     * 
+     *
      * This function sets parent for object. If there was
      * already any parent before calling this function it
      * first remove this object from its list.
-     * 
+     *
      * @param object $parent New parent for object must be
      * instance of \\cfd\\core\\Object or NULL (this is tested by type hinting).
      */
-    public function setParent(Object $parent = NULL) { 
+    public function setParent(Object $parent = NULL) {
         if( !is_null($this->mParent) ) {
             // we will prevent some pointless calls by this assigments
-            $oldParent = $this->mParent; 
+            $oldParent = $this->mParent;
             $this->mParent = NULL;
             $oldParent->removeChild($this);
         }
@@ -135,7 +138,7 @@ class Object {
             $this->mParent->addChild($this);
         }
     }
-    
+
     /**
      * @return Parent of this object.
      */
@@ -156,7 +159,7 @@ class Object {
      * @param object $parent Parent object that will add
      * newly created object to its children list. This must
      * be of type Object (see setParent()).
-     * 
+     *
      * @see setParent()
      */
     public function __construct(Object $parent = NULL) {
@@ -166,18 +169,13 @@ class Object {
     /**
      * @brief Destructs object.
      *
-     * This destructor do necassary things that
-     * have to be done after object destruction.
-     * Note that destructor is called only if their
-     * are not any reference to object. Remember that
-     * reference to object is created each time object
-     * is connected to signal or added as child to any object.
-     * Destructor also call destroy() function to ensure that all
-     * children will be destroyed() too.This means that only way
-     * how to be sure that object's destructor is called is to do this:
+     * This do necessary clen up after all references
+     * to object are destroyed. To delete object in CFD
+     * mean call destroy() function. Allways call this
+     * destructor if you declare your own destructor in child
+     * classes:
      * @code
-     *  $obj->destroy();  // this removes all reference to $obj in CFD objects
-     *  unset($obj);  // this works only if $obj is last reference to object
+     *  parent::__destruct();
      * @endcode
      *
      * @see destroy()
