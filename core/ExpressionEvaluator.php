@@ -20,7 +20,7 @@ namespace cfd\core;
  * that are represented by string. These expressions
  * have C-like form, for example:
  * @code
- * 	n = 10; x = (n == 10) ? 78 + 12 : 83 * 2 + 123 / 123;
+ *     n = 10; x = (n == 10) ? 78 + 12 : 83 * 2 + 123 / 123;
  * @endcode
  * Expression parser tolerates operator precedence (just like we
  * do in math). Each given expression has to contains variables
@@ -28,10 +28,40 @@ namespace cfd\core;
  * later-defined variables assignment. You can get value of desired
  * variable value by getVariable() function.
  *
+ * Folowing operetors are avaible in default operator array:
+ * @code
+ *     ^, *, /, +, - : math operators
+ *     ==, !=, <=, >=, <, > : compare operators
+ *     '?' and ':' : as pair only
+ *     = : assignment to variable
+ * @endcode
+ *
+ * If you wish to define own operator array, do so by following
+ * this structure (example for operator '+' and '='):
+ * @code
+ *     $opArray = array(
+ *      "+" => array("precedence" => 80, "associativity" => "L", "onlyConstants" => true,
+ *                   "func" => create_function('$l, $r', 'return $l + $r;')
+ *                  ),
+ *      "=" => array("precedence" => 0, "associativity" => "R", "onlyConstants" => false,
+ *                   "func" => create_function('$l, $r, $ref', '
+ *                          if($l["type"] != 2) {        // 2 means that it's variable, 1 means number
+ *                              throw new cfd\core\ExpressionException(
+ *                                  cfd\core\I18n::tr("Left operand for \'=\' operator has to be a variable."),
+ *                                  $this
+ *                              );
+ *                          }
+ *                          if($r["type"] == 2) $r["val"] = $ref->getVariable($r["val"]);
+ *                          $ref->setVariable($l["val"], $r["val"]);
+ *                          return $r["val"];')
+ *                      )
+ *     );
+ * @endcode
+ *
  * Use this class to evaluate your plural forms expressions in your
  * own string translators.
  *
- * @see \\cfd\\core\\I18n
+ * @see \\cfd\\core\\I18n, \\cfd\\core\\ExpressionException
  */
 class ExpressionEvaluator extends Object {
     private static $sDefaultOperators = NULL;
@@ -39,6 +69,12 @@ class ExpressionEvaluator extends Object {
     private $mExpressionStringI = array();
     private $mOperators = NULL;
     private $mVariables = array();
+
+    private function throwVarNotDefined($varName) {
+        if( !$this->isVariableDefined($varName) ) {
+            throw new ExpressionException(I18n::tr("Variable '$varName' is not defined."), $this);
+        }
+    }
 
     private function isOperatorDefined($opName) {
         if( array_key_exists($opName, $this->mOperators) ) {
@@ -49,7 +85,7 @@ class ExpressionEvaluator extends Object {
 
     private function &getOperatorProperties($opName) {
         if( !$this->isOperatorDefined($opName) ) {
-            throw new ExpressionException( I18n::tr("Operator '$opName' is not defined.") );
+            throw new ExpressionException(I18n::tr("Operator '$opName' is not defined."), $this);
         }
         return $this->mOperators[$opName];
     }
@@ -148,16 +184,28 @@ class ExpressionEvaluator extends Object {
             // token is operator (operators is allowd to contains only puct characters +
             // these characters are not allowed in other tokens)
             $opName = $ch;
-            // adding support for number that are less than zero
-            if( $opName == "-" && ctype_alnum($this->getNextChar($i)) ) {
+
+            // adding support for number and variables with '-' prepended
+            $tmpI = $this->mExpressionStringI[$i];
+            $nextChar = $this->getNextChar($i);
+            if( $opName == "-" && ( ctype_alnum($nextChar) || ctype_alpha($nextChar) ) ) {
                 $this->putCharBack($i);
                 $arr = $this->getNextToken($i);
-                $arr["val"] = $arr["val"] * -1;
+                if($arr["type"] == 1) $arr["val"] = $arr["val"] * -1;
+                else if($arr["type"] == 2) $arr["val"] = "-" . $arr["val"];
                 return $arr;
             }
+            $this->mExpressionStringI[$i] = $tmpI;
+
+            // if it's not negative var or number:
             while(1) {
-                if( $this->isOperatorDefined($opName) || $opName == "(" || $opName == ")") break;
+                $tmpI = $this->mExpressionStringI[$i];
                 $ch = $this->getNextChar($i);
+                if( ( $this->isOperatorDefined($opName) && !$this->isOperatorDefined($opName.$ch) ) ||
+                      $opName == "(" || $opName == ")") {
+                          $this->mExpressionStringI[$i] = $tmpI;
+                          break;
+                }
                 if($ch === false) {
                     break;
                 }
@@ -187,6 +235,9 @@ class ExpressionEvaluator extends Object {
         self::$sDefaultOperators = array(
             // index is name of operator, precedence, associativity, canTakeVarNames and func -
             // always take 3 arguments - left parameter, right parameter and evaluator's reference (if needed)
+            "^" => array("precedence" => 100, "associativity" => "R", "onlyConstants" => true,
+                         "func" => create_function('$l, $r', 'return pow($l, $r);')
+                        ),
             "*" => array("precedence" => 90, "associativity" => "L", "onlyConstants" => true,
                          "func" => create_function('$l, $r', 'return $l * $r;')
                         ),
@@ -199,16 +250,41 @@ class ExpressionEvaluator extends Object {
             "-" => array("precedence" => 80, "associativity" => "L", "onlyConstants" => true,
                          "func" => create_function('$l, $r', 'return $l - $r;')
                         ),
-            "=" => array("precedence" => 0, "associativity" => "L", "onlyConstants" => false,
+            "==" => array("precedence" => 70, "associativity" => "L", "onlyConstants" => true,
+                         "func" => create_function('$l, $r', 'return $l == $r ? 1 : 0;')
+                        ),
+            "!=" => array("precedence" => 70, "associativity" => "L", "onlyConstants" => true,
+                         "func" => create_function('$l, $r', 'return $l != $r ? 1 : 0;')
+                        ),
+            "<=" => array("precedence" => 70, "associativity" => "L", "onlyConstants" => true,
+                         "func" => create_function('$l, $r', 'return $l <= $r ? 1 : 0;')
+                        ),
+            ">=" => array("precedence" => 70, "associativity" => "L", "onlyConstants" => true,
+                         "func" => create_function('$l, $r', 'return $l >= $r ? 1 : 0;')
+                        ),
+            "<" => array("precedence" => 70, "associativity" => "L", "onlyConstants" => true,
+                         "func" => create_function('$l, $r', 'return $l < $r ? 1 : 0;')
+                        ),
+            ">" => array("precedence" => 70, "associativity" => "L", "onlyConstants" => true,
+                         "func" => create_function('$l, $r', 'return $l > $r ? 1 : 0;')
+                        ),
+            "?" => array("precedence" => 65, "associativity" => "L", "onlyConstants" => true,
+                         "func" => create_function('$l, $r', 'return $l == 0 ? "doColon" : $r;')
+                        ),
+            ":" => array("precedence" => 60, "associativity" => "L", "onlyConstants" => true,
+                         "func" => create_function('$l, $r', 'return $l === "doColon" ? $r : $l;')
+                        ),
+            "=" => array("precedence" => 0, "associativity" => "R", "onlyConstants" => false,
                          "func" => create_function('$l, $r, $ref', '
-                         	if($l["type"] != 2) {
-								throw new cfd\core\ExpressionException(
-    								cfd\core\I18n::tr("Left operand for \'=\' operator has to be a variable and not.")
-    							);
-    						}
-                         	if($r["type"] == 2) $r["val"] = $ref->getVariable($r["val"]);
-                         	$ref->setVariable($l["val"], $r["val"]);
-                         	return $r["val"];')
+                             if($l["type"] != 2) {
+                                 throw new cfd\core\ExpressionException(
+                                     cfd\core\I18n::tr("Left operand for \'=\' operator has to be a variable."),
+                                     $this
+                                 );
+                             }
+                             if($r["type"] == 2) $r["val"] = $ref->getVariable($r["val"]);
+                             $ref->setVariable($l["val"], $r["val"]);
+                             return $r["val"];')
                         )
         );
     }
@@ -274,10 +350,10 @@ class ExpressionEvaluator extends Object {
      */
     public function setVariable($name, $value) {
         if( !ctype_alpha($name[0]) ) {
-            throw new ExpressionException( I18n::tr("Variable name has to start with a letter.") );
+            throw new ExpressionException(I18n::tr("Variable name has to start with a letter."), $this);
         }
         if( !is_numeric($value) ) {
-            throw new ExpressionException( I18n::tr("Variable value has to be a number.") );
+            throw new ExpressionException(I18n::tr("Variable value has to be a number."), $this);
         }
         $this->mVariables[$name] = $value;
     }
@@ -348,7 +424,7 @@ class ExpressionEvaluator extends Object {
                         while(1) {
                             $last = array_pop($operators);
                             if( is_null($last) ) {
-                                throw new ExpressionException( I18n::tr("Parenthesis '(' is missing in expression.") );
+                                throw new ExpressionException(I18n::tr("Parenthesis '(' is missing in expression."), $this);
                             }
                             if($last["val"] == "(") break;
                             $output[] = $last;
@@ -379,10 +455,13 @@ class ExpressionEvaluator extends Object {
             }
             while( ($op = array_pop($operators)) !== NULL ) {
                 if($op["val"] == "(") {
-                    throw new ExpressionException( I18n::tr("Parenthesis ')' is missing in expression.") );
+                    throw new ExpressionException(I18n::tr("Parenthesis ')' is missing in expression."), $this);
                 }
                 $output[] = $op;
             }
+
+            // debug purpose:
+            //echo "<pre>";var_dump($output);echo "</pre>";
 
             // evaluate postfix notation in $output
             $stack = array();
@@ -401,23 +480,30 @@ class ExpressionEvaluator extends Object {
                     if($stackSize >= 2) {
                         $rightParam = array_pop($stack);
                         $leftParam = array_pop($stack);
+                        if($rightParam["type"] == 2 && $rightParam["val"][0] == "-") {
+                            $rightParam["val"] = substr($rightParam["val"], 1);
+                            $this->throwVarNotDefined($rightParam["val"]);
+                            $rightParam["type"] = 1;
+                            $rightParam["val"] = -1 * $this->getVariable($rightParam["val"]);
+                        }
+                        if($leftParam["type"] == 2 && $leftParam["val"][0] == "-") {
+                            $leftParam["val"] = substr($leftParam["val"], 1);
+                            $this->throwVarNotDefined($leftParam["val"]);
+                            $leftParam["type"] = 1;
+                            $leftParam["val"] = -1 * $this->getVariable($leftParam["val"]);
+                        }
                     }
                     else {
-                        throw new ExpressionException( I18n::tr("Each operator requires 2 operands.") );
+                        $opName = $token["val"];
+                        throw new ExpressionException(I18n::tr("Operator '$opName' requires 2 operands."), $this);
                     }
                     if($opProp["onlyConstants"]) {
                         if($leftParam["type"] == 2) {
-                            $varName = $leftParam["val"];
-                            if( !$this->isVariableDefined($varName) ) {
-                                throw new ExpressionException( I18n::tr("Variable '$varName' does not exist.") );
-                            }
+                            $this->throwVarNotDefined($leftParam["val"]);
                             $leftParam["val"] = $this->getVariable($leftParam["val"]);
                         }
                         if( $rightParam["type"] == 2) {
-                            $varName = $rightParam["val"];
-                            if( !$this->isVariableDefined($varName) ) {
-                                throw new ExpressionException( I18n::tr("Variable '$varName' does not exist.") );
-                            }
+                            $this->throwVarNotDefined($rightParam["val"]);
                             $rightParam["val"] = $this->getVariable($rightParam["val"]);
                         }
                         $leftParam = $leftParam["val"];

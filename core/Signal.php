@@ -177,8 +177,8 @@ abstract class Signal extends Object {
      * of functions in array such that structure of array looks like this:
      * \code
      * array(
-     *  0 => array($funcName, $funcNameRetVal),
-     *  1 => array($funcName2, $funcName2RetVal),
+     *  0 => array("func" => $funcName, "val" => $funcNameRetVal),
+     *  1 => array("func" => $funcName2, "val" => $funcName2RetVal),
      *  ...
      * );
      * \endcode

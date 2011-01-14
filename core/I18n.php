@@ -200,7 +200,13 @@ class I18n {
     protected static function translate($domainName, $strs, $n = 1) {
         $retStr = self::$sTranslateString->emit($domainName, static::getLiteralsLocale(), $strs, $n);
         if( !self::$sTranslateString->wasLastEmitSuccessful() ) {
-            return is_array($strs) ? ($n != 1 ? $strs[1] : $strs[0]) : $strs;
+            if( is_array($strs) ) {
+                $exp = new ExpressionEvaluator( static::getPluralsExpression() );
+                $exp->setVariable("n", $n);
+                $exp->evaluate();
+                return $strs[$exp->getVariable("plural")];
+            }
+            return $strs;
         }
         return $retStr;
     }

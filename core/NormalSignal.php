@@ -53,7 +53,7 @@ class NormalSignal extends Signal {
         $params = func_get_args();
         $ret = array();
         foreach($this->mFunctionsList as $key => &$val) {
-            $ret[] = array( $val, $this->callFunction($val, $params) );
+            $ret[] = array( "func" => $val, "val" => $this->callFunction($val, $params) );
         }
         return $ret;
     }

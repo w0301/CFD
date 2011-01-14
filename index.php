@@ -14,20 +14,12 @@
 require_once("MainSettings.php");
 
 try {
-    /*$obj = new cfd\core\NormalSignal();
+    $obj = new cfd\core\NormalSignal();
     $obj->connect("cfd\core\I18n::tr");
 
     echo "<pre>";
-    var_dump( $obj->emit( array($_SERVER['HTTP_ACCEPT_LANGUAGE'], "plural") ) );
-    echo "</pre>";*/
-
-    $obj = new cfd\core\ExpressionEvaluator("num = (a = 10) - 30;");
-    $obj->evaluate();
-    echo "Expression: " . $obj->getExpression();
-    echo "<br/>";
-    echo "a = " . $obj->getVariable("a");
-    echo "<br/>";
-    echo "num = " . $obj->getVariable("num");
+    var_dump( $obj->emit( array($_SERVER['HTTP_ACCEPT_LANGUAGE'], "plural"), 1 ) );
+    echo "</pre>";
 }
 catch(cfd\core\ClassNotFoundException $e) {
     echo "Class was not found in CFD directories (" . $e->getMessage() . "). <br/>";

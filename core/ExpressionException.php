@@ -23,13 +23,29 @@ namespace cfd\core;
  * @see \\cfd\\core\\ExpressionEvaluator
  */
 class ExpressionException extends Exception {
+    private $mExpObj = NULL;
     /**
      * Constructs new exception object.
      *
      * @param string $msg Message of exception that describes it.
+     * @param object $expObj Object that threw this exception. You can use it to
+     * return expression string and variables.
      * @param Exception $prev Previous exception. It's used only when throwing from catch block.
      */
-    public function __construct($msg, \Exception $prev = NULL) {
+    public function __construct($msg, ExpressionEvaluator $expObj, \Exception $prev = NULL) {
+        $mExpObj = $expObj;
         parent::__construct($msg, 3, $prev);
+    }
+
+    /**
+     * @brief Returns expression.
+     *
+     * @return Object of type ExpressionEvaluator that threw this
+     * exception. Use this object to return expression string and/or
+     * defined variables.
+     * @see \\cfd\\core\\ExpressionEvaluator
+     */
+    public function getExpression() {
+        return $mExpObj;
     }
 }
