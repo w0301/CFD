@@ -17,12 +17,15 @@ namespace cfd\core;
  * @brief Exception for class inclusion issue.
  *
  * This exception is thrown when ClassLoader fail to load
- * source file with desired class definition. Code of this
- * exception is @b 1 (returned by getCode() function)
+ * source file with desired class definition.
  *
  * @see \\cfd\\core\\ClassLoader
  */
 class ClassNotFoundException extends \cfd\core\Exception {
+    /**
+     * Code returned by getCode() function for this exception.
+     */
+    const CODE = 4;
     private $mClassName;
     private $mNamespaceName;
 
@@ -35,7 +38,7 @@ class ClassNotFoundException extends \cfd\core\Exception {
      * @param object $prev Previously thrown exception.
      */
     public function __construct($msg, $namespaceName, $className, \Exception $prev = NULL) {
-        parent::__construct($msg, 1, $prev);
+        parent::__construct($msg, self::CODE, $prev);
         $this->mClassName = $className;
         $this->mNamespaceName = $namespaceName;
     }

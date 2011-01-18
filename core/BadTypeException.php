@@ -22,9 +22,12 @@ require_once("Exception.php");
  * bad type. For example when object which is subclass
  * of Object was expected bud object which is subclass of
  * Exception was presented.
- * Code of this exception is @b 2 (use getCode() to get it).
  */
 class BadTypeException extends Exception {
+    /**
+     * Code returned by getCode() function for this exception.
+     */
+    const CODE = 4;
 
     /**
      * Constructs new object.
@@ -33,7 +36,7 @@ class BadTypeException extends Exception {
      * @param object $prev Previously thrown exception.
      */
     public function __construct($msg, \Exception $prev = NULL) {
-        parent::__construct($msg, 2, $prev);
+        parent::__construct($msg, self::CODE, $prev);
     }
 
 }

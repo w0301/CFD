@@ -23,7 +23,12 @@ namespace cfd\core;
  * @see \\cfd\\core\\ExpressionEvaluator
  */
 class ExpressionException extends Exception {
+    /**
+     * Code returned by getCode() function for this exception.
+     */
+    const CODE = 4;
     private $mExpObj = NULL;
+
     /**
      * Constructs new exception object.
      *
@@ -34,7 +39,7 @@ class ExpressionException extends Exception {
      */
     public function __construct($msg, ExpressionEvaluator $expObj, \Exception $prev = NULL) {
         $mExpObj = $expObj;
-        parent::__construct($msg, 3, $prev);
+        parent::__construct($msg, self::CODE, $prev);
     }
 
     /**

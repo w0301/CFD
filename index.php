@@ -11,6 +11,7 @@
  * @LICENSE_END@
  */
 
+use cfd\core\DbConnection;
 require_once("MainSettings.php");
 
 try {
@@ -20,6 +21,11 @@ try {
     echo "<pre>";
     var_dump( $obj->emit( array($_SERVER['HTTP_ACCEPT_LANGUAGE'], "plural"), 1 ) );
     echo "</pre>";
+
+    $db = new cfd\core\DbConnection("mysql:host=localhost;dbname=c", "root", "root");
+}
+catch(cfd\core\DbConnectionException $e) {
+    echo "Connection to database failed (" . $e->getMessage() . "). <br/>";
 }
 catch(cfd\core\ClassNotFoundException $e) {
     echo "Class was not found in CFD directories (" . $e->getMessage() . "). <br/>";
