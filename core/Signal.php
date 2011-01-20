@@ -23,7 +23,7 @@ require_once("Object.php");
  * When any signal is emited by emit() function all connected functions
  * are called. They are more signal classes because call rules of connected
  * function can be different. This class provide abstract interface for
- * those signal classes.
+ * these signal classes.
  *
  * In CFD classes signals are usually public variables (static or not-static). In
  * documentation for those variables it's strictly told which parameters are sent

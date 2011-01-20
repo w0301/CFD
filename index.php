@@ -11,7 +11,7 @@
  * @LICENSE_END@
  */
 
-use cfd\core\DbConnection;
+use cfd\core\BadTypeException;
 require_once("MainSettings.php");
 
 try {
@@ -22,16 +22,22 @@ try {
     var_dump( $obj->emit( array($_SERVER['HTTP_ACCEPT_LANGUAGE'], "plural"), 1 ) );
     echo "</pre>";
 
-    $db = new cfd\core\DbConnection("mysql:host=localhost;dbname=c", "root", "root");
+    $db = new cfd\core\DbConnection("mysql:host=localhost;dbname=cfd_test", "root", "root");
+    //var_dump( cfd\core\DbConnection::getPdoDrivers() );
 }
 catch(cfd\core\DbConnectionException $e) {
-    echo "Connection to database failed (" . $e->getMessage() . "). <br/>";
+    $msg = cfd\core\I18n::tr("Exception was caught:\n");
+    $msg .= cfd\core\I18n::tr("\tConnecting to database was not successful.\n");
+    cfd\core\ExceptionHandling::handle($msg, $e);
 }
 catch(cfd\core\ClassNotFoundException $e) {
-    echo "Class was not found in CFD directories (" . $e->getMessage() . "). <br/>";
-    echo "Namespace of class: " . $e->getNamespaceName() . "<br/>";
-    echo "Name of class: " . $e->getClassName() . "<br/>";
+    $msg = cfd\core\I18n::tr("Exception was caught:\n");
+    $msg .= cfd\core\I18n::tr("\tClass was not found in CFD's directories.\n");
+    $msg .= "\tFull class name is '" . $e->getNamespaceName() . "\\" . $e->getClassName() . "'";
+    cfd\core\ExceptionHandling::handle($msg, $e);
 }
 catch(Exception $e) {
-    echo "Exception occured: " . $e->getMessage() . "<br/>";
+    $msg = cfd\core\I18n::tr("Exception was caught by default catch block:\n");
+    $msg .= "\t" . $e->getMessage();
+    cfd\core\ExceptionHandling::handle($msg, $e);
 }

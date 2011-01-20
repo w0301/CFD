@@ -64,7 +64,7 @@ class ClassAutoloading {
         self::$sLoadClass = new ConditionalSignal();
 
         // adding default loader
-        self::addClassLoader(DefaultClassLoader::getLoader());
+        self::addClassLoader( DefaultClassLoader::getLoader() );
     }
 
     /**
@@ -84,7 +84,7 @@ class ClassAutoloading {
      * @brief Removes class loader.
      *
      * This simply disconnects loader's function loadClass()
-     * to $sLoadClass signal. You will probably never need to
+     * from $sLoadClass signal. You will probably never need to
      * call this function.
      *
      * @param ClassLoader $loader Loader object that's function will be removed.

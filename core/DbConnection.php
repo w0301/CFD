@@ -45,7 +45,7 @@ class DbConnection extends Object {
      * PDO documentation for more info.
      * @param object $parent Parent object of connection.
      */
-    public function __construct($dsn, $username = "", $password = "", $pdoDriverOptions = array(), $parent = NULL) {
+    public function __construct($dsn, $username = "", $password = "", $pdoDriverOptions = array(), Object $parent = NULL) {
         parent::__construct($parent);
         try {
             $this->mPdoObject = new \PDO($dsn, $username, $password, $pdoDriverOptions);
@@ -63,6 +63,21 @@ class DbConnection extends Object {
      */
     public function getPdo() {
         return $this->mPdoObject;
+    }
+
+    /**
+     * @brief Returns list of support database systems.
+     *
+     * @return This function returns list (in array) of supported
+     * database systems. Each entry in array is string that correspond
+     * to PDO's driver name. Use one of returned name in $dsn string when
+     * creating new connection. If driver for your database system is not
+     * listed in this array, you has to adjust PHP's configuration to say PHP
+     * that it should load desired driver. See PDO doc for more info.
+     * @see getPdo();
+     */
+    public static function getPdoDrivers() {
+        return \PDO::getAvailableDrivers();
     }
 
 }
