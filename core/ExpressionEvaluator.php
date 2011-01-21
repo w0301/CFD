@@ -72,7 +72,9 @@ class ExpressionEvaluator extends Object {
 
     private function throwVarNotDefined($varName) {
         if( !$this->isVariableDefined($varName) ) {
-            throw new ExpressionException(I18n::tr("Variable '$varName' is not defined."), $this);
+            throw new ExpressionException(
+                I18n::tr('Variable \'@varName\' is not defined.', array("@varName" => $varName)),
+                $this);
         }
     }
 
@@ -85,7 +87,9 @@ class ExpressionEvaluator extends Object {
 
     private function &getOperatorProperties($opName) {
         if( !$this->isOperatorDefined($opName) ) {
-            throw new ExpressionException(I18n::tr("Operator '$opName' is not defined."), $this);
+            throw new ExpressionException(
+                I18n::tr('Operator \'@opName\' is not defined.', array("@opName" => $opName)),
+                $this);
         }
         return $this->mOperators[$opName];
     }
@@ -279,7 +283,7 @@ class ExpressionEvaluator extends Object {
                              if($l["type"] != 2) {
                                  throw new cfd\core\ExpressionException(
                                      cfd\core\I18n::tr("Left operand for \'=\' operator has to be a variable."),
-                                     $this
+                                     $ref
                                  );
                              }
                              if($r["type"] == 2) $r["val"] = $ref->getVariable($r["val"]);
@@ -495,7 +499,9 @@ class ExpressionEvaluator extends Object {
                     }
                     else {
                         $opName = $token["val"];
-                        throw new ExpressionException(I18n::tr("Operator '$opName' requires 2 operands."), $this);
+                        throw new ExpressionException(
+                            I18n::tr('Operator \'@opName\' requires 2 operands.', array("@opName" => $opName)),
+                            $this);
                     }
                     if($opProp["onlyConstants"]) {
                         if($leftParam["type"] == 2) {

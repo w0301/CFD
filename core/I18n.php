@@ -219,18 +219,44 @@ class I18n {
      * if you want change domain name. This function is marked as final
      * so it can't be overrided if you want change any behaviour
      * of string translating override getStringsDomain() or translate() function.
+     * However this function adds one extre feature to translate() function. It allows
+     * using variable names in translated string. Each variable has to start with one of
+     * the folowing chars:
+     * @code
+     *  @ - if you want to apply htmlspecialchars() filter on variable's content
+     *  ! - if you don't want to apply any filter
+     * @endcode
      *
      * Note that this is static function.
      *
      * @param string $strs Singular form in string or singular form plural
      * form/s in array.
+     * @param array $vars Array of variables that should be substituted after string
+     * translation. It has to contain variable name as key (including '@' or '!' char
+     * at the begining of name) and variable's value as key's value (this value can be
+     * also a PHP variable).
      * @param integer $n Number that is used to determine if singular or plural
-     * form should be used.
-     * @return Return value of translate() function.
+     * form should be used. This number is simply quantity that is used in string.
+     * @return Return value of translate() function with substituted variables.
      * @see translate(), getStringsDomain(), $sTranslateString
      */
-    public final static function tr($strs, $n = 1) {
-        return static::translate(static::getStringsDomain(), $strs, $n);
+    public final static function tr($strs, $vars = array(), $n = 1) {
+        $retStr = static::translate(static::getStringsDomain(), $strs, $n);
+
+        // filtering variable's values
+        if( is_null($vars) ) $vars = array();
+        foreach($vars as $key => $val) {
+            switch($key[0]) {
+                case '@':
+                    // apply PHP's htmlspecialchars() function
+                    $vars[$key] = htmlspecialchars($val, ENT_QUOTES, "UTF-8");
+                case '!':
+                    // do nothing
+            }
+        }
+
+        // we will use PHP's function to supstitude
+        return strtr($retStr, $vars);
     }
 
 } I18n::__static();

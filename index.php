@@ -11,6 +11,7 @@
  * @LICENSE_END@
  */
 
+use cfd\core\ExpressionEvaluator;
 use cfd\core\BadTypeException;
 require_once("MainSettings.php");
 
@@ -18,12 +19,13 @@ try {
     $obj = new cfd\core\NormalSignal();
     $obj->connect("cfd\core\I18n::tr");
 
+    $val = 123321;
     echo "<pre>";
-    var_dump( $obj->emit( array($_SERVER['HTTP_ACCEPT_LANGUAGE'], "plural"), 1 ) );
+    var_dump( $obj->emit( 'This is string with variable with value @var!', array("@var" => $val) ) );
     echo "</pre>";
 
     $db = new cfd\core\DbConnection("mysql:host=localhost;dbname=cfd_test", "root", "root");
-    //var_dump( cfd\core\DbConnection::getPdoDrivers() );
+    var_dump( cfd\core\DbConnection::getPdoDrivers() );
 }
 catch(cfd\core\DbConnectionException $e) {
     $msg = cfd\core\I18n::tr("Exception was caught:\n");
@@ -33,7 +35,8 @@ catch(cfd\core\DbConnectionException $e) {
 catch(cfd\core\ClassNotFoundException $e) {
     $msg = cfd\core\I18n::tr("Exception was caught:\n");
     $msg .= cfd\core\I18n::tr("\tClass was not found in CFD's directories.\n");
-    $msg .= "\tFull class name is '" . $e->getNamespaceName() . "\\" . $e->getClassName() . "'";
+    $className = $e->getNamespaceName() . "\\" . $e->getClassName();
+    $msg .= cfd\core\I18n::tr( "\tFull class name is '!clsName'", array("!clsName" => $className) );
     cfd\core\ExceptionHandling::handle($msg, $e);
 }
 catch(Exception $e) {
