@@ -223,7 +223,7 @@ class I18n {
      * using variable names in translated string. Each variable has to start with one of
      * the folowing chars:
      * @code
-     *  @ - if you want to apply htmlspecialchars() filter on variable's content
+     *  @ - if you want to apply htmlspecialchars() filter on variable's value
      *  ! - if you don't want to apply any filter
      * @endcode
      *
@@ -250,8 +250,14 @@ class I18n {
                 case '@':
                     // apply PHP's htmlspecialchars() function
                     $vars[$key] = htmlspecialchars($val, ENT_QUOTES, "UTF-8");
+                    break;
                 case '!':
                     // do nothing
+                    break;
+                default:
+                    // if filetering level is not specified delete variable
+                    unset($vars[$key]);
+                    break;
             }
         }
 

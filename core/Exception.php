@@ -20,12 +20,13 @@ namespace cfd\core;
  * classes in CFD platform.
  */
 class Exception extends \Exception {
-    /**
+
+	/**
      * Constructs new exception object.
      *
      * @param string $msg Message of exception that describes it.
      * @param int $code Code of exception, unique for every single exception type.
-     * @param Exception $prev Previous exception. It's used only when throwing from catch block.
+     * @param object $prev Previous exception. It's used only when throwing from catch block.
      */
     public function __construct($msg = "", $code = 0, \Exception $prev = NULL) {
         parent::__construct($msg, $code, $prev);

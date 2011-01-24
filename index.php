@@ -11,8 +11,7 @@
  * @LICENSE_END@
  */
 
-use cfd\core\ExpressionEvaluator;
-use cfd\core\BadTypeException;
+use cfd\core\DbDriver;
 require_once("MainSettings.php");
 
 try {
@@ -24,8 +23,8 @@ try {
     var_dump( $obj->emit( 'This is string with variable with value @var!', array("@var" => $val) ) );
     echo "</pre>";
 
-    $db = new cfd\core\DbConnection("mysql:host=localhost;dbname=cfd_test", "root", "root");
-    var_dump( cfd\core\DbConnection::getPdoDrivers() );
+    $db = new DbDriver("mysql", "localhost", "cfd_test", "root", "root");
+    $db->selectQuery("*", "test_table");
 }
 catch(cfd\core\DbConnectionException $e) {
     $msg = cfd\core\I18n::tr("Exception was caught:\n");
