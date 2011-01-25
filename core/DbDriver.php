@@ -173,7 +173,10 @@ class DbDriver extends Object {
      * might not be portable and can cause errors for some database systems.
      * Use functions *Query() for portable query sending.
      *
+     * @throws DbDriverException When query failed to be executed.
      * @param string $str Query string that will be sent to database system.
+     * @return @b Object that is instance of \\cfd\\core\\DbQueryResult. Use it
+     * to get data, or @b true if query was successful and doesn't select any data.
      */
     public function query($str) {
         return $this->mCurrentDriver->query($str);
@@ -185,10 +188,24 @@ class DbDriver extends Object {
      * Simply sends query returned by getSelectQuery() function.
      *
      * @throws DbDriverException When query failed to be executed.
+     * @return @b Object that is instance of \\cfd\\core\\DbQueryResult.
      * @see getSelectQuery()
      */
     public function selectQuery($what, $from, $where = "", $args = array()) {
-        $this->query( $this->getSelectQuery($what, $from, $where, $args) );
+        return $this->query( $this->getSelectQuery($what, $from, $where, $args) );
+    }
+
+    /**
+     * @brief Query insert query.
+     *
+     * Simply sends query returned by getSelectQuery() function.
+     *
+     * @throws DbDriverException When query failed to be executed.
+     * @return @b True if inserting was successful, otherwise exception is thrown.
+     * @see getInsertQuery()
+     */
+    public function insertQuery($into, $values, $args = array()) {
+        return $this->query( $this->getInsertQuery($into, $values, $args) );
     }
 
     /**
@@ -206,6 +223,23 @@ class DbDriver extends Object {
      */
     public function getSelectQuery($what, $from, $where = "", $args = array()) {
         return $this->mCurrentDriver->createSelectQuery($what, $from, $where, $args);
+    }
+
+    /**
+     * @brief Creates insert query for database system.
+     *
+     * Calls current driver's createInsertQuery() function.
+     *
+     * @param string $into Name of table to insert into.
+     * @param array $values Array with values that will be inserted. Each value
+     * has to have key that corresponds to column name.
+     * @param array $args Array with variables that will be substituted from $into
+     * string and from all string values in $values array (not keys!).
+     * @return String that can be used with query() function.
+     * @see \\cfd\\core\\DbSpecificDriver::createSelectQuery(), filterVariables()
+     */
+    public function getInsertQuery($into, $values, $args = array()) {
+        return $this->mCurrentDriver->createInsertQuery($into, $values, $args);
     }
 
 } DbDriver::__static();

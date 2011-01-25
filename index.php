@@ -24,7 +24,11 @@ try {
     echo "</pre>";
 
     $db = new DbDriver("mysql", "localhost", "cfd_test", "root", "root");
-    $db->selectQuery("*", "test_table");
+    $res = $db->selectQuery("*", "test_table_name");
+    while( ($row = $res->fetchRow()) !== false ) {
+        echo $row["name"] . " lives in " . $row["address"] . "<br/>";
+    }
+    //$db->insertQuery("test_table_name", array("name" => "Risosssssss", "address" => "BA"));
 }
 catch(cfd\core\DbConnectionException $e) {
     $msg = cfd\core\I18n::tr("Exception was caught:\n");

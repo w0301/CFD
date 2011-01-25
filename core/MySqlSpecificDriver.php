@@ -59,26 +59,56 @@ class MySqlSpecificDriver implements DbSpecificDriver {
 
     public function query($query) {
         $res = mysql_query($query, $this->mConnectionId);
-        if($res == false) {
+        if($res === false) {
             throw new DbDriverException(
                 I18n::tr("MySQL query execution error: @s", array("@s" => mysql_error())),
                 $query
             );
         }
-        // TODO: return $res in DbQueryResult object
-        return $res;
+        else if($res === true) {
+            return true;
+        }
+        // return query result in DbQueryResult object (actually in its implementation)
+        return new MySqlQueryResult($res);
     }
 
     public function createSelectQuery($what, $from, $where, $args) {
         // filtering and substituting variables
-        DbDriver::filterVariables($args);
-        $what = DbDriver::substituteVariables($what, $args);
-        $from = DbDriver::substituteVariables($from, $args);
-        $where = DbDriver::substituteVariables($where, $args);
+        if(count($args) > 0) {
+            DbDriver::filterVariables($args);
+            $what = DbDriver::substituteVariables($what, $args);
+            $from = DbDriver::substituteVariables($from, $args);
+            $where = DbDriver::substituteVariables($where, $args);
+        }
 
         // creating and returing query for MySQL
         $res = "SELECT " . $what . " FROM " . $from;
         if($where != "") $res .= " WHERE " . $where;
+        return $res;
+    }
+
+    public function createInsertQuery($into, $values, $args) {
+        // filtering values and substituting them
+        if(count($args) > 0) {
+            DbDriver::filterVariables($args);
+            $into = DbDriver::substituteVariables($into, $args);
+            // we are filtering all values!
+            foreach($values as $key => &$val) {
+                // here we will do quotes because of SQL format
+                if( is_string($val) ) $val = "'" . DbDriver::substituteVariables($val, $args) . "'";
+            }
+        }
+        else {
+            // adds quotes to strings
+            foreach($values as &$val) {
+                if( is_string($val) ) $val = "'" . $val . "'";
+            }
+        }
+        $res = "INSERT INTO " . $into . "(";
+        $res .= implode( ",", array_keys($values) );
+        $res .= ")" . " VALUES(";
+        $res .= implode(",", $values);
+        $res .= ")";
         return $res;
     }
 

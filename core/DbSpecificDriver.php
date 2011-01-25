@@ -73,6 +73,8 @@ interface DbSpecificDriver {
      * This function should select specified database in database system.
      * All queries will be sent to this database after selection is performed.
      *
+     * @throws DbDriverException When selection failed - for example when desired
+     * database does not exist.
      * @param string $name Name of database that will be selected.
      */
     public function selectDatabase($name);
@@ -85,7 +87,8 @@ interface DbSpecificDriver {
      * @throws DbDriverException When query failed to be executed.
      * @param string $query Query that will be send to database system.
      * @return @b Object that is instance of class that implements
-     * \\cfd\\core\\DbQueryResult interface.
+     * \\cfd\\core\\DbQueryResult interface, or @b true if query was succesful
+     * but it doesn't select any data.
      */
     public function query($query);
 
@@ -106,5 +109,23 @@ interface DbSpecificDriver {
      * @return Query string that is suitable for query() function.
      */
     public function createSelectQuery($what, $from, $where, $args);
+
+    /**
+     * @brief Returns query that can be used as insert query.
+     *
+     * This function transforms input arguments to query that is suitable
+     * as insert query for database system. For SQL returned query looks like this:
+     * @code
+     *  INSERT INTO $into($key1, $key2, ...) VALUES($value1, $value2, ...)
+     * @endcode
+     *
+     * @param string $into Name of table to insert into.
+     * @param array $values Array where key is a column's name and value
+     * is value to be inserted.
+     * @param array $args Array that contains values of all variables that are
+     * used in columns values and/or in $into string.
+     * @return Query string suitable for query() function.
+     */
+    public function createInsertQuery($into, $values, $args);
 
 }
