@@ -32,7 +32,7 @@ interface DbSpecificDriver {
     /**
      * @brief Returns supported database systems.
      *
-     * This function should return names of database systems that are
+     * This function returns names of database systems that are
      * supported by the driver. This is good to determine which driver
      * should be used for user specified database system.
      *
@@ -44,7 +44,7 @@ interface DbSpecificDriver {
     /**
      * @brief Creates connection to database system.
      *
-     * This function should create connection to database system
+     * This function creates connection to database system
      * and store it in object's property for further use.
      *
      * @throws DbDriverException When connection failed.
@@ -60,7 +60,7 @@ interface DbSpecificDriver {
     /**
      * @brief Terminated connection.
      *
-     * This function should terminates connection that was previously
+     * This function terminates connection that was previously
      * created by connect() function.
      *
      * @see connect()
@@ -70,7 +70,7 @@ interface DbSpecificDriver {
     /**
      * @brief Selects specific database.
      *
-     * This function should select specified database in database system.
+     * This function selects specified database in database system.
      * All queries will be sent to this database after selection is performed.
      *
      * @throws DbDriverException When selection failed - for example when desired
@@ -82,7 +82,7 @@ interface DbSpecificDriver {
     /**
      * @brief Sends query to database system.
      *
-     * This function should send query @b directly to database system.
+     * This function sends query @b directly to database system.
      *
      * @throws DbDriverException When query failed to be executed.
      * @param string $query Query that will be send to database system.
@@ -95,7 +95,7 @@ interface DbSpecificDriver {
     /**
      * @brief Returns query that selects data from table.
      *
-     * This function should transform input data to query for database system.
+     * This function transforms input data to query for database system.
      * For most SQL database systems returned query is in folowing form:
      * @code
      *  SELECT $what FROM $from [WHERE $where]
@@ -127,5 +127,24 @@ interface DbSpecificDriver {
      * @return Query string suitable for query() function.
      */
     public function createInsertQuery($into, $values, $args);
+
+    /**
+     * @brief Returns query that can be used as update query.
+     *
+     * This function transforms input data to query string that can be used
+     * for query() function. For SQL returned query looks like this:
+     * @code
+     *  UPDATE $table SET $newValues WHERE $where
+     * @endcode
+     *
+     * @param string $table Name of table that will be updated.
+     * @param array $newValues Array that contains new values. Array's key
+     * is column name and key's value is new value for column.
+     * @param string $where Where clause of query.
+     * @param array $args Array that contains variable names and values of all
+     * variables used in $table, $where and $newValues[*] strings.
+     * @return Query string suitable for query() function.
+     */
+    public function createUpdateQuery($table, $newValues, $where, $args);
 
 }

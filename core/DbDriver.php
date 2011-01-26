@@ -183,7 +183,7 @@ class DbDriver extends Object {
     }
 
     /**
-     * @brief Query select query.
+     * @brief Sends select query.
      *
      * Simply sends query returned by getSelectQuery() function.
      *
@@ -196,7 +196,7 @@ class DbDriver extends Object {
     }
 
     /**
-     * @brief Query insert query.
+     * @brief Sends insert query.
      *
      * Simply sends query returned by getSelectQuery() function.
      *
@@ -206,6 +206,19 @@ class DbDriver extends Object {
      */
     public function insertQuery($into, $values, $args = array()) {
         return $this->query( $this->getInsertQuery($into, $values, $args) );
+    }
+
+    /**
+     * @brief Sends update query.
+     *
+     * Simply sends query returned by getUpdateQuery() function.
+     *
+     * @throws DbDriverException When query failed to be executed.
+     * @return @b True if updating was successful, otherwise exception is thrown.
+     * @see getUpdateQuery()
+     */
+    public function updateQuery($table, $newValues, $where, $args = array()) {
+        return $this->query( $this->getUpdateQuery($table, $newValues, $where, $args) );
     }
 
     /**
@@ -240,6 +253,27 @@ class DbDriver extends Object {
      */
     public function getInsertQuery($into, $values, $args = array()) {
         return $this->mCurrentDriver->createInsertQuery($into, $values, $args);
+    }
+
+    /**
+     * @brief Creates update query for database system.
+     *
+     * Calls current driver's createUpdataQuery() function.
+     *
+     * @param string $table Name of table that will be updated.
+     * @param array $newValues Array with new values. Key in array has to
+     * be column's name and array's value has to be new value that will be
+     * assigned to column.
+     * @param string $where Condition in SQL form that is used to choose which
+     * rows will be affected.
+     * @param array $args Array with variables that will be substituted from $table,
+     * $where and from all $newValues values strings.
+     * @return @b String that can be used with query() function. This string contain
+     * update query suitable for current database system.
+     * @see \\cfd\\core\\DbSpecificDriver::createUpdataQuery(), filterVariables()
+     */
+    public function getUpdateQuery($table, $newValues, $where, $args = array()) {
+        return $this->mCurrentDriver->createUpdateQuery($table, $newValues, $where, $args);
     }
 
 } DbDriver::__static();

@@ -93,12 +93,13 @@ class MySqlSpecificDriver implements DbSpecificDriver {
             DbDriver::filterVariables($args);
             $into = DbDriver::substituteVariables($into, $args);
             // we are filtering all values!
-            foreach($values as $key => &$val) {
+            foreach($values as &$val) {
                 // here we will do quotes because of SQL format
                 if( is_string($val) ) $val = "'" . DbDriver::substituteVariables($val, $args) . "'";
             }
         }
         else {
+            unset($val);
             // adds quotes to strings
             foreach($values as &$val) {
                 if( is_string($val) ) $val = "'" . $val . "'";
@@ -109,6 +110,30 @@ class MySqlSpecificDriver implements DbSpecificDriver {
         $res .= ")" . " VALUES(";
         $res .= implode(",", $values);
         $res .= ")";
+        return $res;
+    }
+
+    public function createUpdateQuery($table, $newValues, $where, $args) {
+        // filtering values and substituting them
+        if(count($args) > 0) {
+            DbDriver::filterVariables($args);
+            $table = DbDriver::substituteVariables($table, $args);
+        }
+        $res = "UPDATE " . $table . " SET ";
+        $size = count($newValues);
+        $i = 0;
+        foreach($newValues as $key => &$val) {
+            // firstly substitute variables
+            if( count($args) > 0 && is_string($val) ) $val = DbDriver::substituteVariables($val, $args);
+
+            // and now write to res
+            $res .= $key . "=";
+            if( is_string($val) ) $res .= "'" . $val . "'";
+            else $res .= $val;
+            if($i != $size - 1) $res .= ", ";
+            $i++;
+        }
+        $res .= " WHERE " . $where;
         return $res;
     }
 
