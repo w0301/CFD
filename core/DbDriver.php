@@ -195,6 +195,7 @@ class DbDriver extends Object {
         return $this->query( $this->getSelectQuery($what, $from, $where, $args) );
     }
 
+
     /**
      * @brief Sends insert query.
      *
@@ -202,6 +203,7 @@ class DbDriver extends Object {
      *
      * @throws DbDriverException When query failed to be executed.
      * @return @b True if inserting was successful, otherwise exception is thrown.
+     * Note that @b true is returned if sent query was valid.
      * @see getInsertQuery()
      */
     public function insertQuery($into, $values, $args = array()) {
@@ -215,10 +217,25 @@ class DbDriver extends Object {
      *
      * @throws DbDriverException When query failed to be executed.
      * @return @b True if updating was successful, otherwise exception is thrown.
+     * Note that @b true is returned if sent query was valid.
      * @see getUpdateQuery()
      */
     public function updateQuery($table, $newValues, $where, $args = array()) {
         return $this->query( $this->getUpdateQuery($table, $newValues, $where, $args) );
+    }
+
+    /**
+     * @brief Sends delete query.
+     *
+     * Simply sends query returned by getDeleteQuery() function.
+     *
+     * @throws DbDriverException When query failed to be executed.
+     * @return @b True if deleting was successful, otherwise exception is thrown.
+     * Note that @b true is returned if sent query was valid.
+     * @see getDeleteQuery()
+     */
+    public function deleteQuery($from, $where, $args = array()) {
+        return $this->query( $this->getDeleteQuery($from, $where, $args) );
     }
 
     /**
@@ -239,7 +256,7 @@ class DbDriver extends Object {
     }
 
     /**
-     * @brief Creates insert query for database system.
+     * @brief Creates insert query.
      *
      * Calls current driver's createInsertQuery() function.
      *
@@ -256,7 +273,7 @@ class DbDriver extends Object {
     }
 
     /**
-     * @brief Creates update query for database system.
+     * @brief Creates update query.
      *
      * Calls current driver's createUpdataQuery() function.
      *
@@ -274,6 +291,24 @@ class DbDriver extends Object {
      */
     public function getUpdateQuery($table, $newValues, $where, $args = array()) {
         return $this->mCurrentDriver->createUpdateQuery($table, $newValues, $where, $args);
+    }
+
+    /**
+     * @brief Creates delete query.
+     *
+     * Calls current driver's createDeleteQuery() function.
+     *
+     * @param string $from Name of table from which records will be deleted.
+     * @param string $where Condition (where clause) which is used to determine
+     * which records will be deleted.
+     * @param array $args Array with variables that will be substituted from
+     * $from and $where arguments.
+     * @return @b String that contains created query. This query can be used for
+     * query() function.
+     * @see \\cfd\\core\\DbSpecificDriver::createDeleteQuery(), filterVariables()
+     */
+    public function getDeleteQuery($from, $where, $args = array()) {
+        return $this->mCurrentDriver->createDeleteQuery($from, $where, $args);
     }
 
 } DbDriver::__static();

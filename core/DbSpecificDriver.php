@@ -93,7 +93,7 @@ interface DbSpecificDriver {
     public function query($query);
 
     /**
-     * @brief Returns query that selects data from table.
+     * @brief Returns string that selects data from table.
      *
      * This function transforms input data to query for database system.
      * For most SQL database systems returned query is in folowing form:
@@ -106,12 +106,12 @@ interface DbSpecificDriver {
      * @param string $where Condition that is used to determine if row should be selected.
      * @param array $args Array that contains values of all arguments used in string above.
      * Array key is variable name and key's value is variable's value.
-     * @return Query string that is suitable for query() function.
+     * @return @b String with select query that is suitable for query() function.
      */
     public function createSelectQuery($what, $from, $where, $args);
 
     /**
-     * @brief Returns query that can be used as insert query.
+     * @brief Returns string that can be used as insert query.
      *
      * This function transforms input arguments to query that is suitable
      * as insert query for database system. For SQL returned query looks like this:
@@ -124,12 +124,12 @@ interface DbSpecificDriver {
      * is value to be inserted.
      * @param array $args Array that contains values of all variables that are
      * used in columns values and/or in $into string.
-     * @return Query string suitable for query() function.
+     * @return @b String with insert query suitable for query() function.
      */
     public function createInsertQuery($into, $values, $args);
 
     /**
-     * @brief Returns query that can be used as update query.
+     * @brief Returns string that can be used as update query.
      *
      * This function transforms input data to query string that can be used
      * for query() function. For SQL returned query looks like this:
@@ -143,8 +143,26 @@ interface DbSpecificDriver {
      * @param string $where Where clause of query.
      * @param array $args Array that contains variable names and values of all
      * variables used in $table, $where and $newValues[*] strings.
-     * @return Query string suitable for query() function.
+     * @return @b String with update query string suitable for query() function.
      */
     public function createUpdateQuery($table, $newValues, $where, $args);
+
+    /**
+     * @brief Returns string that can be used as delete query.
+     *
+     * This function transforms input data to query string that can be used for
+     * query() function. Fot SQL returned query looks like this:
+     * @code
+     *  DELETE FROM $from WHERE $where
+     * @endcode
+     *
+     * @param string $from Name of table from which rows will be deleted.
+     * @param string $where SQL like condition (where clause) that is used to determine
+     * which rows to delete.
+     * @param array $args Array that contains variables that will be substituted from
+     * $table and $where strings.
+     * @return @b String with delete query suitable for query() function.
+     */
+    public function createDeleteQuery($from, $where, $args);
 
 }

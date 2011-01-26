@@ -25,7 +25,8 @@ try {
 
     $db = new DbDriver("mysql", "localhost", "cfd_test", "root", "root");
     $db->updateQuery("test_table_name", array("name" => "Richard", "address" => "Bratislava"), "name!='Richard'");
-    //$db->insertQuery("test_table_name", array("name" => "Risosssssss", "address" => "BA"));
+    $db->deleteQuery("test_table_name", "name='Richard'");
+    $db->insertQuery("test_table_name", array("name" => "Risosssssss", "address" => "BA"));
     $res = $db->selectQuery("*", "test_table_name");
     while( ($row = $res->fetchRow()) !== false ) {
         echo $row["name"] . " lives in " . $row["address"] . "<br/>";

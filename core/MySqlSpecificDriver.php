@@ -137,4 +137,18 @@ class MySqlSpecificDriver implements DbSpecificDriver {
         return $res;
     }
 
+    public function createDeleteQuery($from, $where, $args) {
+        // filtering and substituting variables
+        if(count($args) > 0) {
+            DbDriver::filterVariables($args);
+            $from = DbDriver::substituteVariables($from, $args);
+            $where = DbDriver::substituteVariables($where, $args);
+        }
+
+        // creating and returing query for MySQL
+        $res = "DELETE FROM " . $from;
+        if($where != "") $res .= " WHERE " . $where;
+        return $res;
+    }
+
 }
