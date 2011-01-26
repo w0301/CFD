@@ -106,9 +106,12 @@ interface DbSpecificDriver {
      * @param string $where Condition that is used to determine if row should be selected.
      * @param array $args Array that contains values of all arguments used in string above.
      * Array key is variable name and key's value is variable's value.
+     * @param array $orderBy Array containg name of columns that will affect ordering.
+     * @param integer $orderType Type of ordering. Set to \\cfd\\core\\DbDriver::ASC_ORDER for
+     * ascending ordering or to \\cfd\\core\\DbDriver::DESC_ORDER for descending ordering.
      * @return @b String with select query that is suitable for query() function.
      */
-    public function createSelectQuery($what, $from, $where, $args);
+    public function createSelectQuery($what, $from, $where, $args, $orderBy, $orderType);
 
     /**
      * @brief Returns string that can be used as insert query.

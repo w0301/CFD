@@ -72,7 +72,7 @@ class MySqlSpecificDriver implements DbSpecificDriver {
         return new MySqlQueryResult($res);
     }
 
-    public function createSelectQuery($what, $from, $where, $args) {
+    public function createSelectQuery($what, $from, $where, $args, $orderBy, $orderType) {
         // filtering and substituting variables
         if(count($args) > 0) {
             DbDriver::filterVariables($args);
@@ -84,6 +84,10 @@ class MySqlSpecificDriver implements DbSpecificDriver {
         // creating and returing query for MySQL
         $res = "SELECT " . $what . " FROM " . $from;
         if($where != "") $res .= " WHERE " . $where;
+        if( is_array($orderBy) && count($orderBy) > 0 ) {
+            $res .= " ORDER BY " . implode(", ", $orderBy);
+            $res .= " " . ($orderType == DbDriver::ASC_ORDER ? "ASC" : "DESC");
+        }
         return $res;
     }
 

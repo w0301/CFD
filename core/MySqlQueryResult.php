@@ -36,6 +36,15 @@ class MySqlQueryResult implements DbQueryResult {
         $this->mQueryResult = $queryResult;
     }
 
+    /**
+     * @brief Destroys object.
+     *
+     * Destructor frees resource which points to result data.
+     */
+    public function __destruct() {
+        if( !is_null($this->mQueryResult) ) mysql_free_result($this->mQueryResult);
+    }
+
     public function fetchRow($type = self::NAME_INDEXES) {
         return mysql_fetch_array($this->mQueryResult,
             $type == self::NUM_INDEXES ? MYSQL_NUM : ($type == self::NAME_INDEXES ? MYSQL_ASSOC : MYSQL_BOTH));

@@ -29,6 +29,16 @@ namespace cfd\core;
  * @see \\cfd\\core\\DbSpecificDriver
  */
 class DbDriver extends Object {
+    /**
+     * Indicates that ascending ordering should be apply.
+     */
+    const ASC_ORDER = 1;
+
+    /**
+     * Indicates that descending ordering should be apply.
+     */
+    const DESC_ORDER = 2;
+
     private static $sSpecificDrivers = array();
     private $mCurrentDriver = NULL;
 
@@ -191,8 +201,8 @@ class DbDriver extends Object {
      * @return @b Object that is instance of \\cfd\\core\\DbQueryResult.
      * @see getSelectQuery()
      */
-    public function selectQuery($what, $from, $where = "", $args = array()) {
-        return $this->query( $this->getSelectQuery($what, $from, $where, $args) );
+    public function selectQuery($what, $from, $where = "", $args = array(), $orderBy = array(), $orderType = self::ASC_ORDER) {
+        return $this->query( $this->getSelectQuery($what, $from, $where, $args, $orderBy, $orderType) );
     }
 
 
@@ -248,11 +258,18 @@ class DbDriver extends Object {
      * @param string $where Where condition.
      * @param array $args Variables (key) and values (value). Format explained
      * in filterVariables() function. Value can be also return of getSelectQuery().
+     * @param array $orderBy Array containg name of columns that will affect ordering.
+     * Array has to look like this:
+     * @code
+     *  $arr = array("columnName1", "columnName2");
+     * @endcode
+     * @param integer $orderType Type of ordering. Set to \\cfd\\core\\DbDriver::ASC_ORDER for
+     * ascending ordering or to \\cfd\\core\\DbDriver::DESC_ORDER for descending ordering.
      * @return Select query suitable for query() function.
      * @see \\cfd\\core\\DbSpecificDriver::createSelectQuery(), filterVariables()
      */
-    public function getSelectQuery($what, $from, $where = "", $args = array()) {
-        return $this->mCurrentDriver->createSelectQuery($what, $from, $where, $args);
+    public function getSelectQuery($what, $from, $where = "", $args = array(), $orderBy = array(), $orderType = self::ASC_ORDER) {
+        return $this->mCurrentDriver->createSelectQuery($what, $from, $where, $args, $orderBy, $orderType);
     }
 
     /**

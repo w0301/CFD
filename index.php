@@ -24,13 +24,14 @@ try {
     echo "</pre>";
 
     $db = new DbDriver("mysql", "localhost", "cfd_test", "root", "root");
-    $db->updateQuery("test_table_name", array("name" => "Richard", "address" => "Bratislava"), "name!='Richard'");
-    $db->deleteQuery("test_table_name", "name='Richard'");
-    $db->insertQuery("test_table_name", array("name" => "Risosssssss", "address" => "BA"));
+    //$db->updateQuery("test_table_name", array("name" => "Richard", "address" => "Bratislava"), "name!='Richard'");
+    //$db->deleteQuery("test_table_name", "name='Richard'");
+    //$db->insertQuery("test_table_name", array("name" => "Adam", "address" => "Ahem"));
     $res = $db->selectQuery("*", "test_table_name");
-    while( ($row = $res->fetchRow()) !== false ) {
+    while( ($row = $res->fetchRow(cfd\core\DbQueryResult::BOTH_INDEXES)) !== false ) {
         echo $row["name"] . " lives in " . $row["address"] . "<br/>";
     }
+    // TODO: change query to drupal like => full rewrite of DbDriver :(
 }
 catch(cfd\core\DbConnectionException $e) {
     $msg = cfd\core\I18n::tr("Exception was caught:\n");
