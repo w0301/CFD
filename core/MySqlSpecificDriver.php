@@ -13,6 +13,9 @@
 
 namespace cfd\core;
 
+// in this file there are *MySqlQuery classes which are private
+// and can be created only by DbSpecificDriver::createSpecificQuery() function
+
 /**
  * @brief Database driver for MySQL.
  *
@@ -36,6 +39,10 @@ class MySqlSpecificDriver implements DbSpecificDriver {
      */
     public static function getSupportedDbs() {
         return "mysql";
+    }
+
+    public static function createSpecificQuery($queryType, $tableName, $options = array()) {
+
     }
 
     public function connect($host, $username = "", $password = "", $driverArgs = array()) {
@@ -71,6 +78,7 @@ class MySqlSpecificDriver implements DbSpecificDriver {
         // return query result in DbQueryResult object (actually in its implementation)
         return new MySqlQueryResult($res);
     }
+
 
     public function createSelectQuery($what, $from, $where, $args, $orderBy, $orderType) {
         // filtering and substituting variables

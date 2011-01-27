@@ -18,27 +18,20 @@ namespace cfd\core;
  *
  * Instancies of this class are used to send queries to database
  * system. It's provide just general functions that can be used for
- * every database system. Functions for direct sending queries and for
- * translating CFD's query form to database's form are in special class.
+ * every database system. Functions for direct sending are in special class.
  * This special class is specific for each database system. All this specific
  * classes have to implement \\cfd\\core\\DbSpecificDriver interface.
  *
- * CFD's queries are represented by classes with name: Db*Query where '*'
- * stands for query name (i.e. Insert, Select, Drop etc.).
+ * CFD's queries are represented by classes with name: *DbQuery where '*'
+ * stands for query name (i.e. Insert, Select, Drop etc.). All these classes
+ * extends \\cfd\\core\\DbQuery class. Use functions select(), insert() etc.
+ * to return instances of these classes (actually instances of private database
+ * system depended classes are returned but these classes extends classes mentioned
+ * above).
  *
- * @see \\cfd\\core\\DbSpecificDriver
+ * @see \\cfd\\core\\DbSpecificDriver, \\cfd\\core\\DbQuery
  */
 class DbDriver extends Object {
-    /**
-     * Indicates that ascending ordering should be apply.
-     */
-    const ASC_ORDER = 1;
-
-    /**
-     * Indicates that descending ordering should be apply.
-     */
-    const DESC_ORDER = 2;
-
     private static $sSpecificDrivers = array();
     private $mCurrentDriver = NULL;
 
@@ -185,147 +178,15 @@ class DbDriver extends Object {
      *
      * @throws DbDriverException When query failed to be executed.
      * @param string $str Query string that will be sent to database system.
+     * @param array $args Array that contains variables that should be substituted
+     * fomr $str.
      * @return @b Object that is instance of \\cfd\\core\\DbQueryResult. Use it
      * to get data, or @b true if query was successful and doesn't select any data.
      */
-    public function query($str) {
+    public function query($str, $args = array()) {
+        DbDriver::filterVariables($args);
+        $str = DbDriver::substituteVariables($str, $args);
         return $this->mCurrentDriver->query($str);
-    }
-
-    /**
-     * @brief Sends select query.
-     *
-     * Simply sends query returned by getSelectQuery() function.
-     *
-     * @throws DbDriverException When query failed to be executed.
-     * @return @b Object that is instance of \\cfd\\core\\DbQueryResult.
-     * @see getSelectQuery()
-     */
-    public function selectQuery($what, $from, $where = "", $args = array(), $orderBy = array(), $orderType = self::ASC_ORDER) {
-        return $this->query( $this->getSelectQuery($what, $from, $where, $args, $orderBy, $orderType) );
-    }
-
-
-    /**
-     * @brief Sends insert query.
-     *
-     * Simply sends query returned by getSelectQuery() function.
-     *
-     * @throws DbDriverException When query failed to be executed.
-     * @return @b True if inserting was successful, otherwise exception is thrown.
-     * Note that @b true is returned if sent query was valid.
-     * @see getInsertQuery()
-     */
-    public function insertQuery($into, $values, $args = array()) {
-        return $this->query( $this->getInsertQuery($into, $values, $args) );
-    }
-
-    /**
-     * @brief Sends update query.
-     *
-     * Simply sends query returned by getUpdateQuery() function.
-     *
-     * @throws DbDriverException When query failed to be executed.
-     * @return @b True if updating was successful, otherwise exception is thrown.
-     * Note that @b true is returned if sent query was valid.
-     * @see getUpdateQuery()
-     */
-    public function updateQuery($table, $newValues, $where, $args = array()) {
-        return $this->query( $this->getUpdateQuery($table, $newValues, $where, $args) );
-    }
-
-    /**
-     * @brief Sends delete query.
-     *
-     * Simply sends query returned by getDeleteQuery() function.
-     *
-     * @throws DbDriverException When query failed to be executed.
-     * @return @b True if deleting was successful, otherwise exception is thrown.
-     * Note that @b true is returned if sent query was valid.
-     * @see getDeleteQuery()
-     */
-    public function deleteQuery($from, $where, $args = array()) {
-        return $this->query( $this->getDeleteQuery($from, $where, $args) );
-    }
-
-    /**
-     * @brief Returns right select query.
-     *
-     * Calls current driver's createSelectQuery() function.
-     *
-     * @param string $what Comma separated columns names.
-     * @param string $from Table name.
-     * @param string $where Where condition.
-     * @param array $args Variables (key) and values (value). Format explained
-     * in filterVariables() function. Value can be also return of getSelectQuery().
-     * @param array $orderBy Array containg name of columns that will affect ordering.
-     * Array has to look like this:
-     * @code
-     *  $arr = array("columnName1", "columnName2");
-     * @endcode
-     * @param integer $orderType Type of ordering. Set to \\cfd\\core\\DbDriver::ASC_ORDER for
-     * ascending ordering or to \\cfd\\core\\DbDriver::DESC_ORDER for descending ordering.
-     * @return Select query suitable for query() function.
-     * @see \\cfd\\core\\DbSpecificDriver::createSelectQuery(), filterVariables()
-     */
-    public function getSelectQuery($what, $from, $where = "", $args = array(), $orderBy = array(), $orderType = self::ASC_ORDER) {
-        return $this->mCurrentDriver->createSelectQuery($what, $from, $where, $args, $orderBy, $orderType);
-    }
-
-    /**
-     * @brief Creates insert query.
-     *
-     * Calls current driver's createInsertQuery() function.
-     *
-     * @param string $into Name of table to insert into.
-     * @param array $values Array with values that will be inserted. Each value
-     * has to have key that corresponds to column name.
-     * @param array $args Array with variables that will be substituted from $into
-     * string and from all string values in $values array (not keys!).
-     * @return String that can be used with query() function.
-     * @see \\cfd\\core\\DbSpecificDriver::createSelectQuery(), filterVariables()
-     */
-    public function getInsertQuery($into, $values, $args = array()) {
-        return $this->mCurrentDriver->createInsertQuery($into, $values, $args);
-    }
-
-    /**
-     * @brief Creates update query.
-     *
-     * Calls current driver's createUpdataQuery() function.
-     *
-     * @param string $table Name of table that will be updated.
-     * @param array $newValues Array with new values. Key in array has to
-     * be column's name and array's value has to be new value that will be
-     * assigned to column.
-     * @param string $where Condition in SQL form that is used to choose which
-     * rows will be affected.
-     * @param array $args Array with variables that will be substituted from $table,
-     * $where and from all $newValues values strings.
-     * @return @b String that can be used with query() function. This string contain
-     * update query suitable for current database system.
-     * @see \\cfd\\core\\DbSpecificDriver::createUpdataQuery(), filterVariables()
-     */
-    public function getUpdateQuery($table, $newValues, $where, $args = array()) {
-        return $this->mCurrentDriver->createUpdateQuery($table, $newValues, $where, $args);
-    }
-
-    /**
-     * @brief Creates delete query.
-     *
-     * Calls current driver's createDeleteQuery() function.
-     *
-     * @param string $from Name of table from which records will be deleted.
-     * @param string $where Condition (where clause) which is used to determine
-     * which records will be deleted.
-     * @param array $args Array with variables that will be substituted from
-     * $from and $where arguments.
-     * @return @b String that contains created query. This query can be used for
-     * query() function.
-     * @see \\cfd\\core\\DbSpecificDriver::createDeleteQuery(), filterVariables()
-     */
-    public function getDeleteQuery($from, $where, $args = array()) {
-        return $this->mCurrentDriver->createDeleteQuery($from, $where, $args);
     }
 
 } DbDriver::__static();

@@ -42,6 +42,33 @@ interface DbSpecificDriver {
     public static function getSupportedDbs();
 
     /**
+     * @brief Returns new query object.
+     *
+     * This function creates new object of type that extends
+     * \\cfd\\core\\DbDriver. Created object has to be able to
+     * operate query of $queryType type. It also has to send its
+     * query to $tableName table.
+     *
+     * @param integer $queryType Query type for which object will be created. Has to be
+     * one of following constant:
+     * @code
+     *  \cfd\core\DbQuery::SELECT_QUERY
+     *  \cfd\core\DbQuery::INSERT_QUERY
+     *  \cfd\core\DbQuery::UPDATE_QUERY
+     *  \cfd\core\DbQuery::DELETE_QUERY
+     *  \cfd\core\DbQuery::CREATE_QUERY
+     *  \cfd\core\DbQuery::TRUNCATE_QUERY
+     *  \cfd\core\DbQuery::ALTER_QUERY
+     *  \cfd\core\DbQuery::DROP_QUERY
+     * @endcode
+     * @param string $tableName Name of table that will be affected by returned query.
+     * @param array $options Additional options passed to query object during creation.
+     * These options are query and database system specific.
+     * @return New query object suitalbe to handle $queryType query.
+     */
+    public static function createSpecificQuery($queryType, $tableName, $options = array());
+
+    /**
      * @brief Creates connection to database system.
      *
      * This function creates connection to database system
@@ -91,81 +118,5 @@ interface DbSpecificDriver {
      * but it doesn't select any data.
      */
     public function query($query);
-
-    /**
-     * @brief Returns string that selects data from table.
-     *
-     * This function transforms input data to query for database system.
-     * For most SQL database systems returned query is in folowing form:
-     * @code
-     *  SELECT $what FROM $from [WHERE $where]
-     * @endcode
-     *
-     * @param string $what Comma separated list of columns that will be selected.
-     * @param string $from Name of table from which will be selected data.
-     * @param string $where Condition that is used to determine if row should be selected.
-     * @param array $args Array that contains values of all arguments used in string above.
-     * Array key is variable name and key's value is variable's value.
-     * @param array $orderBy Array containg name of columns that will affect ordering.
-     * @param integer $orderType Type of ordering. Set to \\cfd\\core\\DbDriver::ASC_ORDER for
-     * ascending ordering or to \\cfd\\core\\DbDriver::DESC_ORDER for descending ordering.
-     * @return @b String with select query that is suitable for query() function.
-     */
-    public function createSelectQuery($what, $from, $where, $args, $orderBy, $orderType);
-
-    /**
-     * @brief Returns string that can be used as insert query.
-     *
-     * This function transforms input arguments to query that is suitable
-     * as insert query for database system. For SQL returned query looks like this:
-     * @code
-     *  INSERT INTO $into($key1, $key2, ...) VALUES($value1, $value2, ...)
-     * @endcode
-     *
-     * @param string $into Name of table to insert into.
-     * @param array $values Array where key is a column's name and value
-     * is value to be inserted.
-     * @param array $args Array that contains values of all variables that are
-     * used in columns values and/or in $into string.
-     * @return @b String with insert query suitable for query() function.
-     */
-    public function createInsertQuery($into, $values, $args);
-
-    /**
-     * @brief Returns string that can be used as update query.
-     *
-     * This function transforms input data to query string that can be used
-     * for query() function. For SQL returned query looks like this:
-     * @code
-     *  UPDATE $table SET $newValues WHERE $where
-     * @endcode
-     *
-     * @param string $table Name of table that will be updated.
-     * @param array $newValues Array that contains new values. Array's key
-     * is column name and key's value is new value for column.
-     * @param string $where Where clause of query.
-     * @param array $args Array that contains variable names and values of all
-     * variables used in $table, $where and $newValues[*] strings.
-     * @return @b String with update query string suitable for query() function.
-     */
-    public function createUpdateQuery($table, $newValues, $where, $args);
-
-    /**
-     * @brief Returns string that can be used as delete query.
-     *
-     * This function transforms input data to query string that can be used for
-     * query() function. Fot SQL returned query looks like this:
-     * @code
-     *  DELETE FROM $from WHERE $where
-     * @endcode
-     *
-     * @param string $from Name of table from which rows will be deleted.
-     * @param string $where SQL like condition (where clause) that is used to determine
-     * which rows to delete.
-     * @param array $args Array that contains variables that will be substituted from
-     * $table and $where strings.
-     * @return @b String with delete query suitable for query() function.
-     */
-    public function createDeleteQuery($from, $where, $args);
 
 }
