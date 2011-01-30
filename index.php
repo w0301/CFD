@@ -28,13 +28,20 @@ try {
     //$db->deleteQuery("test_table_name", "name='Richard'");
     //$db->insertQuery("test_table_name", array("name" => "Adam", "address" => "Ahem"));
     //$res = $db->selectQuery("*", "test_table_name");
-    //while( ($row = $res->fetchRow(cfd\core\DbQueryResult::BOTH_INDEXES)) !== false ) {
-    //    echo $row["name"] . " lives in " . $row["address"] . "<br/>";
-    //}
+    $res = $db->query("SELECT test_table_name.name, new_table.text FROM test_table_name, new_table");
+    while( ($row = $res->fetchRow(cfd\core\DbQueryResult::BOTH_INDEXES)) !== false ) {
+        echo $row["name"] . " text is: " . $row["text"] . "<br/>";
+    }
 }
-catch(cfd\core\DbConnectionException $e) {
+catch(cfd\core\DbDriverException $e) {
     $msg = cfd\core\I18n::tr("Exception was caught:\n");
-    $msg .= cfd\core\I18n::tr("\tConnecting to database was not successful.\n");
+    if($e->getQuery() != "") {
+        $msg .= cfd\core\I18n::tr("\tDatabase query was not successful.\n");
+        $msg .= cfd\core\I18n::tr( "\tSQL query was: !s.\n", array("!s" => $e->getQuery()) );
+    }
+    else {
+        $msg .= cfd\core\I18n::tr("\tDatabase connection can't be established.\n");
+    }
     cfd\core\ExceptionHandling::handle($msg, $e);
 }
 catch(cfd\core\ClassNotFoundException $e) {

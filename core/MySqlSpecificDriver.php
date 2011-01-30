@@ -13,8 +13,9 @@
 
 namespace cfd\core;
 
-// in this file there are *MySqlQuery classes which are private
-// and can be created only by DbSpecificDriver::createSpecificQuery() function
+// in this file there are MySql*Query classes + MySqlQueryResult class which are private
+// and can be created only by DbSpecificDriver::createSpecificQuery() function or by
+// query() function
 
 /**
  * @brief Database driver for MySQL.
@@ -41,8 +42,11 @@ class MySqlSpecificDriver implements DbSpecificDriver {
         return "mysql";
     }
 
-    public static function createSpecificQuery($queryType, $tableName, $options = array()) {
-
+    public static function createSpecificQuery($queryType, $tableName, DbDriver $dbDriver, $options = array()) {
+        switch($queryType) {
+            case DbQuery::SELECT_QUERY:
+                //return new MySqlSelectQuery($tableName, $dbDriver);
+        }
     }
 
     public function connect($host, $username = "", $password = "", $driverArgs = array()) {
@@ -161,6 +165,53 @@ class MySqlSpecificDriver implements DbSpecificDriver {
         $res = "DELETE FROM " . $from;
         if($where != "") $res .= " WHERE " . $where;
         return $res;
+    }
+
+}
+
+/**
+ * @brief Manipulate MySQL results.
+ *
+ * This class is implementation of \\cfd\\core\\DbQueryResult for
+ * MySQL specific driver.
+ *
+ * @see \\cfd\\core\\DbQueryResult, \\cfd\\core\\MySqlSpecificDriver
+ */
+class MySqlQueryResult implements DbQueryResult {
+    private $mQueryResult = NULL;
+
+    /**
+     * @brief Creates new object.
+     *
+     * Creates new object that manipulate with MySQL query result.
+     *
+     * @param resource $queryResult Resource returned by low-level MySQL database
+     * system function.
+     */
+    public function __construct($queryResult) {
+        $this->mQueryResult = $queryResult;
+    }
+
+    /**
+     * @brief Destroys object.
+     *
+     * Destructor frees resource which points to result data.
+     */
+    public function __destruct() {
+        if( !is_null($this->mQueryResult) ) mysql_free_result($this->mQueryResult);
+    }
+
+    public function fetchRow($type = self::NAME_INDEXES) {
+        return mysql_fetch_array($this->mQueryResult,
+            $type == self::NUM_INDEXES ? MYSQL_NUM : ($type == self::NAME_INDEXES ? MYSQL_ASSOC : MYSQL_BOTH));
+    }
+
+    public function getRowsCount() {
+        return mysql_num_rows($this->mQueryResult);
+    }
+
+    public function getColumnsCount() {
+        return mysql_num_fields($this->mQueryResult);
     }
 
 }

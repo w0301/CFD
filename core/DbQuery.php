@@ -35,6 +35,8 @@ abstract class DbQuery extends Object {
     const ALTER_QUERY = 7;
     const DROP_QUERY = 8;
 
+    private $mTableNames = array();
+
     /**
      * @brief Constructs new query object.
      *
@@ -44,12 +46,15 @@ abstract class DbQuery extends Object {
      * object owns this query and which driver should be asked
      * to send it to database system.
      *
+     * @param string $tableName String with name of table that will be affected
+     * by this query.
      * @param object $parent DbDriver object that owns this
      * query (DbDriver object that sent it).
      * @see getDbDriver()
      */
-    public function __construct(DbQuery $parent) {
+    public function __construct($tableName, DbQuery $parent) {
         parent::__construct($parent);
+        $this->mTableNames[] = $tableName;
     }
 
     /**
@@ -62,6 +67,30 @@ abstract class DbQuery extends Object {
      */
     public function getDbDriver() {
         return getParent();
+    }
+
+    /**
+     * @brief Returns primary table name.
+     *
+     * This function returns primary table name that is going to be
+     * affected by this query.
+     *
+     * @return @b String with table name that was passed to object's constructor.
+     */
+    public function getPrimaryTableName() {
+        return $this->mTableNames[0];
+    }
+
+    /**
+     * @brief Returns all table names.
+     *
+     * This function can be used to return all table names that are
+     * going to be affected by this query.
+     *
+     * @return @b Reference to array that holds table names in strings.
+     */
+    public function &getTableNames() {
+        return $this->mTableNames;
     }
 
     /**

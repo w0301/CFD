@@ -17,15 +17,9 @@ namespace cfd\core;
  * @brief Interface for all specific db drivers.
  *
  * This is interface that has to be implemented by all database
- * system drivers. Functions that are listed in this interface add
- * support for translating CFD's queries to database specific query.
- * This translating is needed because not all database systems use same
- * queries. Mainly there are problems with different data types. However
- * if database system is very similar to one that already has specific driver
- * it's good idea to subclass existing driver rather than implementing everything
- * from scratch.
+ * system specific drivers.
  *
- * @see \\cfd\\core\\DbDriver
+ * @see \\cfd\\core\\DbDriver, \\cfd\\core\\DbQuery
  */
 interface DbSpecificDriver {
 
@@ -62,11 +56,13 @@ interface DbSpecificDriver {
      *  \cfd\core\DbQuery::DROP_QUERY
      * @endcode
      * @param string $tableName Name of table that will be affected by returned query.
+     * @param object $dbDriver Database driver object that create this query and is suppose
+     * to send it.
      * @param array $options Additional options passed to query object during creation.
      * These options are query and database system specific.
      * @return New query object suitalbe to handle $queryType query.
      */
-    public static function createSpecificQuery($queryType, $tableName, $options = array());
+    public static function createSpecificQuery($queryType, $tableName, DbDriver $dbDriver, $options = array());
 
     /**
      * @brief Creates connection to database system.

@@ -22,7 +22,7 @@ namespace cfd\core;
  * This special class is specific for each database system. All this specific
  * classes have to implement \\cfd\\core\\DbSpecificDriver interface.
  *
- * CFD's queries are represented by classes with name: *DbQuery where '*'
+ * CFD's queries are represented by classes with name: Db*Query where '*'
  * stands for query name (i.e. Insert, Select, Drop etc.). All these classes
  * extends \\cfd\\core\\DbQuery class. Use functions select(), insert() etc.
  * to return instances of these classes (actually instances of private database
@@ -121,7 +121,17 @@ class DbDriver extends Object {
         }
         $this->mCurrentDriver = new self::$sSpecificDrivers[$driverName];
         $this->mCurrentDriver->connect($host, $user, $pass, $driversOptions);
-        if($dbName != "") $this->mCurrentDriver->selectDatabase($dbName);
+        if($dbName != "") $this->selectDatabase($dbName);
+    }
+
+    /**
+     * @brief Destroys object.
+     *
+     * Disconnects object from database.
+     */
+    public function __destruct() {
+        parent::__destruct();
+        $this->mCurrentDriver->disconnect();
     }
 
     /**
@@ -169,12 +179,25 @@ class DbDriver extends Object {
     }
 
     /**
+     * @brief Selects database.
+     *
+     * This function selects database that will receive all queries
+     * from this database driver object.
+     *
+     * @param string $name Name of database.
+     * @throws DbDriverException When selection failed.
+     */
+    public function selectDatabase($name) {
+        return $this->mCurrentDriver->selectDatabase($name);
+    }
+
+    /**
      * @brief Sends query.
      *
      * This function sends query to database system. Remember that the
      * query string is sent without any processing, that means that it
      * might not be portable and can cause errors for some database systems.
-     * Use functions *Query() for portable query sending.
+     * Use functions select(), insert() etc. for portable query sending.
      *
      * @throws DbDriverException When query failed to be executed.
      * @param string $str Query string that will be sent to database system.
