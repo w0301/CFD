@@ -29,6 +29,12 @@ try {
     //$db->insertQuery("test_table_name", array("name" => "Adam", "address" => "Ahem"));
     //$res = $db->selectQuery("*", "test_table_name");
     $res = $db->query("SELECT test_table_name.name, new_table.text FROM test_table_name, new_table");
+    $cond = new cfd\core\DbCondition("AND");
+    $cond->condition(
+        cfd\core\DbCondition::orCondition()->prop("col_name", 1, ">")
+        ->condition( cfd\core\DbCondition::andCondition()->prop("col_name2", 1, "<") )
+    )->condition( cfd\core\DbCondition::andCondition()->prop("col_name3", "name") );
+    echo $cond->compile() . "<br/>";
     while( ($row = $res->fetchRow(cfd\core\DbQueryResult::BOTH_INDEXES)) !== false ) {
         echo $row["name"] . " text is: " . $row["text"] . "<br/>";
     }

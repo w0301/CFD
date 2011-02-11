@@ -117,6 +117,17 @@ class Object {
     }
 
     /**
+     * @brief Returns all children.
+     *
+     * Returns array with object's childrens.
+     *
+     * @return @b Reference to array of all object's children.
+     */
+    public function &getChildren() {
+        return $this->mChildren;
+    }
+
+    /**
      * @brief Sets parent for object.
      *
      * This function sets parent for object. If there was

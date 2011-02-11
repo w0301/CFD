@@ -26,30 +26,77 @@ namespace cfd\core;
  */
 abstract class DbSelectQuery extends DbQuery {
     private $mOnlyDistinct = false;
+    private $mExpressionsCount = 0;
+
+    /**
+     * @brief Object of conditions.
+     *
+     * This is parent object of all conditions for this select
+     * query. It's binary operator is set to "AND".
+     *
+     * @see \\cfd\\core\\DbCondition, condition()
+     */
+    protected $mCondition = NULL;
+
+    /**
+     * @brief Selects from limit.
+     *
+     * This number determine from which index rows should be selected.
+     */
+    protected $mLimitFrom = 0;
+
+    /**
+     * @brief Selects count limit.
+     *
+     * This number determine how many rows should be selected. Note that @b 0
+     * means all rows.
+     */
+    protected $mLimitCount = 0;
 
     /**
      * @brief Array of columns.
      *
      * This array contains all columns for specific table that
-     * are going to be selected. First index is table name and
-     * second index is integer index of column name. Example:
-     * @code
-     *  // prints all columns that will be selected from "table1"
-     *  foreach($this->mTablesColumns["table1"] as $val) {
-     *  	echo $val . "\n";
-     *  }
+     * are going to be selected.
      *
-     *  // if this is true we can't iterate over array because
-     *  // there isn't any, string "all" indicates that all columns
-     *  // should be selecter
-     *  if($this->mTablesColumns["table1"] == "all") echo "all columns";
+     * Structure of array:
+     * @code
+     *  $mColumns = array(
+     *  	"tableName" => array("columns" => array("column1", "column2"), "all_columns" => false),
+     *  	"tableName2" => array("columns" => array("this is ignored because 'all_columns' is true"), "all_columns" => true),
+     *  );
      * @endcode
      *
+     * @see columns()
      */
-    protected $mTablesColumns = array();
+    protected $mColumns = array();
+
+    /**
+     * @biref Array of expressions.
+     *
+     * This array holds all expressions assigned to this query.
+     * Each expression is specifed by expression string and alias
+     * for expression return. Expressions are not portable across
+     * different database systems. Example of expression:
+     * @code
+     *  COUNT(*) AS count_of_all
+     * @endcode
+     *
+     * Structure of array:
+     * @code
+     *  $mExpressions = array(
+     *  	"aliasName" => array("alias" => "aliasName", "expression" => "expressionString"),
+     *  	...
+     *  );
+     * @endcode
+     *
+     * @see expression()
+     */
+    protected $mExpressions = array();
 
     public function __construct($tableName, DbDriver $parent) {
         parent::__construct($tableName, $parent);
+        $this->mCondition = new DbCondition("AND");
     }
 
     /**
@@ -65,6 +112,7 @@ abstract class DbSelectQuery extends DbQuery {
      */
     public function distinct($val = true) {
         $this->mOnlyDistinct = $val;
+        $this->enforceCompilation();
         return $this;
     }
 
@@ -81,7 +129,7 @@ abstract class DbSelectQuery extends DbQuery {
     }
 
     /**
-     * @brief Mark column to be selected.
+     * @brief Marks column(s) to be selected.
      *
      * This function marks column(s) to be selected by query.
      *
@@ -92,18 +140,90 @@ abstract class DbSelectQuery extends DbQuery {
      * @return Current @b object is returned (@b $this).
      */
     public function columns($tableName, $columnNames = "*") {
-        if($columnNames == "*") $this->$mTablesColumns[$tableName] = "all";
-        else {
-            if( !is_array($this->$mTablesColumns[$tableName]) ) $this->$mTablesColumns[$tableName] = array();
+        if( !is_array($this->mColumns[$tableName]) ) {
+            $this->mColumns[$tableName] = array("columns" => array(), "all_columns" => false);
+        }
+        if($columnNames == "*") {
+            // indicates that all columns will be selected
+            $this->mColumns[$tableName]["all_columns"] = true;
+        }
+        else if(!$this->mColumns[$tableName]["all_columns"]) {
+            // add specified columns
             if( is_array($columnNames) ) {
                 foreach($columnNames as &$val) {
-                    $this->$mTablesColumns[$tableName][] = $val;
+                    $this->mColumns[$tableName]["columns"][] = $val;
                 }
             }
             else {
-                $this->$mTablesColumns[$tableName][] = $columnNames;
+                $this->mColumns[$tableName]["columns"][] = $columnNames;
             }
         }
+        $this->enforceCompilation();
+        return $this;
+    }
+
+    /**
+     * @brief Adds expression to query.
+     *
+     * This function adds expression. Added expression is not changed to
+     * be portable by CFD db system. Example of using this function:
+     * @code
+     *  $query->expression("COUNT(*)", "count_of_rows");
+     * @endcode
+     *
+     * @param string $expStr String of expression.
+     * @param string $alias Alias for expression call. You can use this as
+     * column name when fetching values from db result. If this is @b NULL alias
+     * will be autocreated in form - "expression_N", where N is count of autocreated aliases.
+     * @param srray $args Variables that will be substituted from $expStr.
+     * @return Current @b object ($this).
+     */
+    public function expression($expStr, $alias = NULL, $args = array()) {
+        if( empty($alias) ) {
+            // autogenerate alias
+            $alias = "expression_" . $this->mExpressionsCount++;
+            while( array_key_exists($alias, $this->mExpressions) ) {
+                $alias = "expression_" . $this->mExpressionsCount++;
+            }
+            // alias is unique now we can continue
+        }
+        if( !empty($args) ) {
+            DbDriver::filterVariables($args);
+            $expStr = DbDriver::substituteVariables($expStr, $args);
+        }
+        $this->mExpressions[$alias] = array(
+            "alias" => $alias,
+            "expression" => $expStr
+        );
+        $this->enforceCompilation();
+        return $this;
+    }
+
+    /**
+     * @brief Adds new condition.
+     *
+     * Adds condition to where clause of select query. And returns
+     * current object.
+     *
+     * @param object $cond Object that describes condition.
+     * @return Current object ($this).
+     * @see \\cfd\\core\\DbCondition
+     */
+    public function condition(DbCondition $cond) {
+        $this->mCondition->condition($cond);
+        return $this;
+    }
+
+    /**
+     * @brief Sets new select limit.
+     *
+     * @param integer $from Index of first row to be selected.
+     * @param integer $count Count of rows to select. Zero means all rows.
+     * @return Current object ($this).
+     */
+    public function limit($from, $count = 0) {
+        $this->mLimitFrom = $from;
+        $this->mLimitCount = $count;
         return $this;
     }
 

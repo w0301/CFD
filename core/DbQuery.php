@@ -36,6 +36,8 @@ abstract class DbQuery extends Object {
     const DROP_QUERY = 8;
 
     private $mTableNames = array();
+    private $mLastCompileOutput = NULL;
+    private $mWasChanged = false;
 
     /**
      * @brief Constructs new query object.
@@ -103,7 +105,11 @@ abstract class DbQuery extends Object {
      * @return Result of \\cfd\\core\\DbDriver::query() function.
      */
     public function send() {
-        return $this->getDbDriver()->query( $this->compile() );
+        // we will compile only if it is needed
+        if( $this->mWasChanged || is_null($this->mLastCompileOutput) ) {
+            $this->mLastCompileOutput = $this->compile();
+        }
+        return $this->getDbDriver()->query($this->mLastCompileOutput);
     }
 
     /**
@@ -116,5 +122,18 @@ abstract class DbQuery extends Object {
      * by database system.
      */
     abstract public function compile();
+
+    /**
+     * @brief Indicates that query has to be compiled.
+     *
+     * If you call this function query will be compiled during
+     * next call of send() function. You has to call it in every
+     * function that affectes variables used during compilation in
+     * compile() function. It should be called before return statement
+     * or before end of function if there is not return statement.
+     */
+    public function enforceCompilation() {
+        $this->mWasChanged = true;
+    }
 
 }
