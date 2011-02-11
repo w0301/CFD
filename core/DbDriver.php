@@ -212,4 +212,18 @@ class DbDriver extends Object {
         return $this->mCurrentDriver->query($str);
     }
 
+    /**
+     * @brief Creates select query.
+     *
+     * Use this function to return select query object that you can
+     * edit for your select needs. Object implements \\cfd\\core\\DbSelectQuery class
+     * interface.
+     *
+     * @param string $tableName Name of table that this select query selects from.
+     * @return New @b object of type \\cfd\\core\\DbSelectQuery.
+     */
+    public function select($tableName) {
+        return $this->mCurrentDriver->createSpecificQuery(DbQuery::SELECT_QUERY, $tableName, $this);
+    }
+
 } DbDriver::__static();

@@ -54,7 +54,7 @@ abstract class DbQuery extends Object {
      * query (DbDriver object that sent it).
      * @see getDbDriver()
      */
-    public function __construct($tableName, DbQuery $parent) {
+    public function __construct($tableName, DbDriver $parent) {
         parent::__construct($parent);
         $this->mTableNames[] = $tableName;
     }
@@ -68,7 +68,7 @@ abstract class DbQuery extends Object {
      * this query object.
      */
     public function getDbDriver() {
-        return getParent();
+        return $this->getParent();
     }
 
     /**

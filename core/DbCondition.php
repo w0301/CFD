@@ -44,6 +44,16 @@ class DbCondition extends Object {
     }
 
     /**
+     * @brief Is condition empty?
+     *
+     * @return @b True if condition is empty, @b false otherwise.
+     */
+    public function isEmpty() {
+        return count( $this->getChildren() ) == 0 &&
+            ( empty($this->mVariable) || empty($this->mOperator) || empty($this->mValue) );
+    }
+
+    /**
      * @brief Sets properties.
      *
      * This function sets default properties for this object. Note
@@ -88,7 +98,7 @@ class DbCondition extends Object {
         if($this->mNeedCompilation) {
             $this->mLastCompileOutput = "";
 
-            $isAllSet = empty($this->mVariable) && empty($this->mValue) && empty($this->mOperator);
+            $isAllSet = !empty($this->mVariable) && !empty($this->mValue) && !empty($this->mOperator);
             if($isAllSet) {
                 $this->mLastCompileOutput .= "(" . $this->mVariable;
                 $this->mLastCompileOutput .= " " . $this->mOperator . " ";

@@ -94,6 +94,14 @@ abstract class DbSelectQuery extends DbQuery {
      */
     protected $mExpressions = array();
 
+    /**
+     * @brief Constructs new query.
+     *
+     * Creates new select query.
+     *
+     * @param string $tableName Name of table that this query selects from.
+     * @param object $parent \\cfd\\core\\DbDriver object that sends this query.
+     */
     public function __construct($tableName, DbDriver $parent) {
         parent::__construct($tableName, $parent);
         $this->mCondition = new DbCondition("AND");
@@ -140,7 +148,7 @@ abstract class DbSelectQuery extends DbQuery {
      * @return Current @b object is returned (@b $this).
      */
     public function columns($tableName, $columnNames = "*") {
-        if( !is_array($this->mColumns[$tableName]) ) {
+        if( empty($this->mColumns[$tableName]) ) {
             $this->mColumns[$tableName] = array("columns" => array(), "all_columns" => false);
         }
         if($columnNames == "*") {

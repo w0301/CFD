@@ -45,7 +45,7 @@ class MySqlSpecificDriver implements DbSpecificDriver {
     public static function createSpecificQuery($queryType, $tableName, DbDriver $dbDriver, $options = array()) {
         switch($queryType) {
             case DbQuery::SELECT_QUERY:
-                //return new MySqlSelectQuery($tableName, $dbDriver);
+                return new MySqlSelectQuery($tableName, $dbDriver);
         }
     }
 
@@ -212,6 +212,69 @@ class MySqlQueryResult implements DbQueryResult {
 
     public function getColumnsCount() {
         return mysql_num_fields($this->mQueryResult);
+    }
+
+}
+
+/**
+ * @brief MySql's select query.
+ *
+ * Implementation of \\cfd\\core\\DbSelectQuery specific for
+ * MySql database system.
+ *
+ * @see \\cfd\\core\\DbSelectQuery
+ */
+class MySqlSelectQuery extends DbSelectQuery {
+
+    public function compile() {
+        // creating query for MySQL
+        $res = "SELECT ";
+
+        $done = 0;
+        $size = count($this->mColumns);
+        foreach($this->mColumns as $tableName => &$val) {
+            $cols = "";
+            if(!$val["all_columns"]) {
+                $done2 = 0;
+                $size2 = count($val["columns"]);
+                foreach($val["columns"] as $colName) {
+                    $cols .= $tableName . "." . $colName;
+                    if(++$done2 != $size2) $cols .= ", ";
+                }
+            }
+            else {
+                $cols = $tableName . "*";
+            }
+            $res .= $cols;
+            if(++$done != $size) $res .= ", ";
+        }
+
+        $done = 0;
+        $sizeExp = count($this->mExpressions);
+        if($size > 0 && $sizeExp > 0) $res .= ", ";
+        foreach($this->mExpressions as &$exp) {
+            $res .= $exp["expression"] . " AS " . $exp["alias"];
+            if(++$done != $size) $res .= ", ";
+        }
+
+        $res .= " FROM ";
+        $tables =& $this->getTableNames();
+        $done = 0;
+        $size = count($tables);
+        foreach($tables as $tableName) {
+            $res .= $tableName;
+            if(++$done != $size) $res .= ", ";
+        }
+
+        if( !$this->mCondition->isEmpty() ) {
+            $res .= " WHERE " . $this->mCondition->compile();
+        }
+
+        if($this->mLimitCount != 0 || $this->mLimitFrom != 0) {
+            $res .= " LIMIT " . $this->mLimitFrom . ", " . $this->mLimitCount;
+        }
+
+        return $res;
     }
 
 }
