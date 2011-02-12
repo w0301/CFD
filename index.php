@@ -30,14 +30,16 @@ try {
     //$res = $db->selectQuery("*", "test_table_name");
     //$res = $db->query("SELECT test_table_name.name, new_table.text FROM test_table_name, new_table");
 
-    $res = $db->select("test_table_name")->
-            columns( "test_table_name", array("name") )->
-            condition( cfd\core\DbCondition::andCondition()->prop("name", "%", "<>") )->
+    $res = $db->select("test_table_name", "t")->
+            columns( array("id", "name", "address") )->
+            //expression( "COUNT(*)", "full_count" )->
+            condition( cfd\core\DbCondition::andCondition()->prop("t.name", "%", "<>") )->
+            condition( cfd\core\DbCondition::andCondition()->prop("t.id", array(60, 65), "BETWEEN") )->
             limit(0, 0)->
             send();
-
-    while( ($row = $res->fetchRow(cfd\core\DbQueryResult::BOTH_INDEXES)) !== false ) {
-        echo $row["name"] . "<br/>";
+    while( ($row = $res->fetchRow(cfd\core\DbQueryResult::NAME_INDEXES)) !== false ) {
+        print_r($row);
+        echo "name: " . $row["name"] . "<br/>";
     }
 }
 catch(cfd\core\DbDriverException $e) {

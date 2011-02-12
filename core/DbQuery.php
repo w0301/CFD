@@ -35,7 +35,8 @@ abstract class DbQuery extends Object {
     const ALTER_QUERY = 7;
     const DROP_QUERY = 8;
 
-    private $mTableNames = array();
+    private $mTableName = "";
+    private $mTableNameAlias = NULL;
     private $mLastCompileOutput = NULL;
     private $mWasChanged = false;
 
@@ -50,13 +51,17 @@ abstract class DbQuery extends Object {
      *
      * @param string $tableName String with name of table that will be affected
      * by this query.
+     * @param string $tableNameAlias String with alias for table. This alias should be
+     * short and you can use it instead of table name in all functions. Pass @b NULL if you
+     * don't want any alias.
      * @param object $parent DbDriver object that owns this
      * query (DbDriver object that sent it).
      * @see getDbDriver()
      */
-    public function __construct($tableName, DbDriver $parent) {
+    public function __construct($tableName, $tableNameAlias, DbDriver $parent) {
         parent::__construct($parent);
-        $this->mTableNames[] = $tableName;
+        $this->mTableName = $tableName;
+        $this->mTableNameAlias = $tableNameAlias;
     }
 
     /**
@@ -72,27 +77,26 @@ abstract class DbQuery extends Object {
     }
 
     /**
-     * @brief Returns primary table name.
+     * @brief Returns table name.
      *
-     * This function returns primary table name that is going to be
+     * This function returns table name of table that is going to be
      * affected by this query.
      *
      * @return @b String with table name that was passed to object's constructor.
      */
-    public function getPrimaryTableName() {
-        return $this->mTableNames[0];
+    public function getTableName() {
+        return $this->mTableName;
     }
 
     /**
-     * @brief Returns all table names.
+     * @brief Returns alias for table name.
      *
-     * This function can be used to return all table names that are
-     * going to be affected by this query.
+     * This function returns alias that can be used insted of table name.
      *
-     * @return @b Reference to array that holds table names in strings.
+     * @return @b String with alias, or @b NULL if there is no alias.
      */
-    public function &getTableNames() {
-        return $this->mTableNames;
+    public function getTableNameAlias() {
+        return $this->mTableNameAlias;
     }
 
     /**

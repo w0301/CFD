@@ -28,6 +28,36 @@ class DbCondition extends Object {
     private $mOperator = NULL;
     private $mValue = NULL;
 
+    private function getStringForValue() {
+        // returns string that has to be used as right side of operator statement
+        $res = "";
+        if( is_numeric($this->mValue) ) $res = $this->mValue;
+        else if( is_array($this->mValue) && ($this->mOperator == "IN" || $this->mOperator == "NOT IN") ) {
+            $res .= "(";
+            $done = 0;
+            $size = count($this->mValue);
+            foreach($this->mValue as $val) {
+                if( is_integer($val) || is_float($val) ) $res .= $val;
+                else $res .= "'" . $val . "'";
+                if(++$done != $size) $res .= ", ";
+            }
+            $res .= ")";
+        }
+        else if( is_array($this->mValue) ) {
+            $done = 0;
+            $size = count($this->mValue);
+            foreach($this->mValue as $val) {
+                if( is_integer($val) || is_float($val) ) $res .= $val;
+                else $res .= "'" . $val . "'";
+                if(++$done != $size) $res .= " AND ";
+                if($done == 2) break;
+            }
+        }
+        else $res = "'" . $this->mValue . "'";
+
+        return $res;
+    }
+
     /**
      * @brief Creates new condition object.
      *
@@ -61,8 +91,21 @@ class DbCondition extends Object {
      * properties during compilation of condition.
      *
      * @param string $variable Name of variable, or any other left operand of condition.
-     * @param string $value Value of variable to be test, or any other right operand.
+     * @param string $value Value of variable to be test, or any other right operand. For
+     * 'BETWEEN' and 'IN' operators this has to be array.
      * @param string $operator Operator to be used between $variable and $value.
+     * Folowing operators are supported:
+     * @code
+     *	'='
+     *	'<> or '!='
+     *	'>'
+     *	'<'
+     *	'>='
+     *	'<='
+     *	'BETWEEN' and 'BETWEEN'
+     *	'LIKE' and 'NOT LIKE'
+     *	'IN' and 'NOT IN'
+     * @endcode
      * @return Current object ($this).
      */
     public function prop($variable, $value, $operator = "=") {
@@ -98,26 +141,31 @@ class DbCondition extends Object {
         if($this->mNeedCompilation) {
             $this->mLastCompileOutput = "";
 
-            $isAllSet = !empty($this->mVariable) && !empty($this->mValue) && !empty($this->mOperator);
+            // count of children
+            $children =& $this->getChildren();
+            $size = count($children);
+
+            // empty operator means '='
+            if( empty($this->mOperator) ) $this->mOperator = "=";
+
+            // adding current props
+            $isAllSet = !empty($this->mVariable) && !empty($this->mValue);
             if($isAllSet) {
-                $this->mLastCompileOutput .= "(" . $this->mVariable;
+                if($size > 0) $this->mLastCompileOutput .= "(";
+                $this->mLastCompileOutput .= $this->mVariable;
                 $this->mLastCompileOutput .= " " . $this->mOperator . " ";
-                if( is_numeric($this->mValue) ) $this->mLastCompileOutput .= $this->mValue;
-                else $this->mLastCompileOutput .= "'" . $this->mValue . "'";
-                $this->mLastCompileOutput .= ")";
+                $this->mLastCompileOutput .= $this->getStringForValue();
+                if($size > 0) {
+                    $this->mLastCompileOutput .= ")";
+                    $this->mLastCompileOutput .= " " . $this->mBinOperator . " ";
+                }
             }
 
-            $children =& $this->getChildren();
+            // adding props of children
             $done = 0;
-            $size = count($children);
-            if($size > 0 && $isAllSet) $this->mLastCompileOutput .= " " . $this->mBinOperator . " ";
-
             foreach($children as $child) {
-                if($size > 1) $this->mLastCompileOutput .= "(";
-                $this->mLastCompileOutput .= $child->compile();
-                if($size > 1) $this->mLastCompileOutput .= ")";
-                $done++;
-                if($done != $size)  $this->mLastCompileOutput .= " " . $this->mBinOperator . " ";
+                $this->mLastCompileOutput .= "(" . $child->compile() . ")";
+                if(++$done != $size)  $this->mLastCompileOutput .= " " . $this->mBinOperator . " ";
             }
         }
         return $this->mLastCompileOutput;

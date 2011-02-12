@@ -42,10 +42,10 @@ class MySqlSpecificDriver implements DbSpecificDriver {
         return "mysql";
     }
 
-    public static function createSpecificQuery($queryType, $tableName, DbDriver $dbDriver, $options = array()) {
+    public static function createSpecificQuery($queryType, $tableName, $tableAlias, DbDriver $dbDriver, $options = array()) {
         switch($queryType) {
             case DbQuery::SELECT_QUERY:
-                return new MySqlSelectQuery($tableName, $dbDriver);
+                return new MySqlSelectQuery($tableName, $tableAlias, $dbDriver);
         }
     }
 
@@ -81,90 +81,6 @@ class MySqlSpecificDriver implements DbSpecificDriver {
         }
         // return query result in DbQueryResult object (actually in its implementation)
         return new MySqlQueryResult($res);
-    }
-
-
-    public function createSelectQuery($what, $from, $where, $args, $orderBy, $orderType) {
-        // filtering and substituting variables
-        if(count($args) > 0) {
-            DbDriver::filterVariables($args);
-            $what = DbDriver::substituteVariables($what, $args);
-            $from = DbDriver::substituteVariables($from, $args);
-            $where = DbDriver::substituteVariables($where, $args);
-        }
-
-        // creating and returing query for MySQL
-        $res = "SELECT " . $what . " FROM " . $from;
-        if($where != "") $res .= " WHERE " . $where;
-        if( is_array($orderBy) && count($orderBy) > 0 ) {
-            $res .= " ORDER BY " . implode(", ", $orderBy);
-            $res .= " " . ($orderType == DbDriver::ASC_ORDER ? "ASC" : "DESC");
-        }
-        return $res;
-    }
-
-    public function createInsertQuery($into, $values, $args) {
-        // filtering values and substituting them
-        if(count($args) > 0) {
-            DbDriver::filterVariables($args);
-            $into = DbDriver::substituteVariables($into, $args);
-            // we are filtering all values!
-            foreach($values as &$val) {
-                // here we will do quotes because of SQL format
-                if( is_string($val) ) $val = "'" . DbDriver::substituteVariables($val, $args) . "'";
-            }
-        }
-        else {
-            unset($val);
-            // adds quotes to strings
-            foreach($values as &$val) {
-                if( is_string($val) ) $val = "'" . $val . "'";
-            }
-        }
-        $res = "INSERT INTO " . $into . "(";
-        $res .= implode( ",", array_keys($values) );
-        $res .= ")" . " VALUES(";
-        $res .= implode(",", $values);
-        $res .= ")";
-        return $res;
-    }
-
-    public function createUpdateQuery($table, $newValues, $where, $args) {
-        // filtering values and substituting them
-        if(count($args) > 0) {
-            DbDriver::filterVariables($args);
-            $table = DbDriver::substituteVariables($table, $args);
-        }
-        $res = "UPDATE " . $table . " SET ";
-        $size = count($newValues);
-        $i = 0;
-        foreach($newValues as $key => &$val) {
-            // firstly substitute variables
-            if( count($args) > 0 && is_string($val) ) $val = DbDriver::substituteVariables($val, $args);
-
-            // and now write to res
-            $res .= $key . "=";
-            if( is_string($val) ) $res .= "'" . $val . "'";
-            else $res .= $val;
-            if($i != $size - 1) $res .= ", ";
-            $i++;
-        }
-        $res .= " WHERE " . $where;
-        return $res;
-    }
-
-    public function createDeleteQuery($from, $where, $args) {
-        // filtering and substituting variables
-        if(count($args) > 0) {
-            DbDriver::filterVariables($args);
-            $from = DbDriver::substituteVariables($from, $args);
-            $where = DbDriver::substituteVariables($where, $args);
-        }
-
-        // creating and returing query for MySQL
-        $res = "DELETE FROM " . $from;
-        if($where != "") $res .= " WHERE " . $where;
-        return $res;
     }
 
 }
@@ -230,46 +146,47 @@ class MySqlSelectQuery extends DbSelectQuery {
         // creating query for MySQL
         $res = "SELECT ";
 
-        $done = 0;
+        // right table name - alias if specified or full name if not
+        $tableName = is_null( $this->getTableNameAlias() ) ? $this->getTableName() : $this->getTableNameAlias();
+
+        // adding columns names
         $size = count($this->mColumns);
-        foreach($this->mColumns as $tableName => &$val) {
-            $cols = "";
-            if(!$val["all_columns"]) {
-                $done2 = 0;
-                $size2 = count($val["columns"]);
-                foreach($val["columns"] as $colName) {
-                    $cols .= $tableName . "." . $colName;
-                    if(++$done2 != $size2) $cols .= ", ";
+        $sizeExp = count($this->mExpressions);
+        if($this->mColumns["all_columns"]) {
+            $res .= $tableName . ".*";
+            if($sizeExp > 0) $res .= ", ";
+        }
+        else {
+            $done = 0;
+            foreach($this->mColumns as $key => &$val) {
+                if($key !== "all_columns") {
+                    $res .= $tableName . "." . $val["name"];
+                    if( !is_null($val["alias"]) ) $res .= " AS " . $val["alias"];
+                    if(++$done != $size) $res .= ", ";
                 }
+                else $done++;
             }
-            else {
-                $cols = $tableName . "*";
-            }
-            $res .= $cols;
-            if(++$done != $size) $res .= ", ";
+            if($sizeExp > 0) $res .= ", ";
         }
 
+        // adding expressions with there aliases
         $done = 0;
-        $sizeExp = count($this->mExpressions);
-        if($size > 0 && $sizeExp > 0) $res .= ", ";
         foreach($this->mExpressions as &$exp) {
             $res .= $exp["expression"] . " AS " . $exp["alias"];
             if(++$done != $size) $res .= ", ";
         }
 
-        $res .= " FROM ";
-        $tables =& $this->getTableNames();
-        $done = 0;
-        $size = count($tables);
-        foreach($tables as $tableName) {
-            $res .= $tableName;
-            if(++$done != $size) $res .= ", ";
-        }
+        // adding table name with alias to query
+        $res .= " FROM " . $this->getTableName();
+        if( !is_null($this->getTableNameAlias()) ) $res .= " AS " . $this->getTableNameAlias();
 
+
+        // adding where clause
         if( !$this->mCondition->isEmpty() ) {
             $res .= " WHERE " . $this->mCondition->compile();
         }
 
+        // adding limit of selection
         if($this->mLimitCount != 0 || $this->mLimitFrom != 0) {
             $res .= " LIMIT " . $this->mLimitFrom . ", " . $this->mLimitCount;
         }

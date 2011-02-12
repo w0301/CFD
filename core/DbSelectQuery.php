@@ -62,8 +62,8 @@ abstract class DbSelectQuery extends DbQuery {
      * Structure of array:
      * @code
      *  $mColumns = array(
-     *  	"tableName" => array("columns" => array("column1", "column2"), "all_columns" => false),
-     *  	"tableName2" => array("columns" => array("this is ignored because 'all_columns' is true"), "all_columns" => true),
+     *  	"all_columns" => false,
+     *  	0 => array("name" => "col1", "alias" => "c1"), 1 => array("name" => "col2", "alias" => NULL)
      *  );
      * @endcode
      *
@@ -100,11 +100,17 @@ abstract class DbSelectQuery extends DbQuery {
      * Creates new select query.
      *
      * @param string $tableName Name of table that this query selects from.
+     * @param string $tableAlias Alias for table name, or @b NULL if alias is not needed.
      * @param object $parent \\cfd\\core\\DbDriver object that sends this query.
      */
-    public function __construct($tableName, DbDriver $parent) {
-        parent::__construct($tableName, $parent);
+    public function __construct($tableName, $tableAlias, DbDriver $parent) {
+        parent::__construct($tableName, $tableAlias, $parent);
+
+        // condition for query
         $this->mCondition = new DbCondition("AND");
+
+        // columns names
+        $this->mColumns["all_columns"] = false;
     }
 
     /**
@@ -140,32 +146,33 @@ abstract class DbSelectQuery extends DbQuery {
      * @brief Marks column(s) to be selected.
      *
      * This function marks column(s) to be selected by query.
+     * Note that if you define alias name for column you have to
+     * index column's value by alias and not by column's name!
      *
-     * @param string $tableName Name of table which columns will be addded.
      * @param mixed $columnNames String with column name to be addded or array
-     * with strings of columns names to be added. Set to "*" if you want to select
-     * all columns (if you don't select any column this is done anyway).
+     * with strings of columns names to be added. If you use array you can use
+     * array with just values (each value is column name) or you can specify key
+     * as string (key is used as column name and value as alias name).
+     * Set to "*" if you want to select all columns (if you don't select any column this is done anyway).
      * @return Current @b object is returned (@b $this).
      */
-    public function columns($tableName, $columnNames = "*") {
-        if( empty($this->mColumns[$tableName]) ) {
-            $this->mColumns[$tableName] = array("columns" => array(), "all_columns" => false);
+    public function columns($columnNames = "*") {
+        if( is_string($columnNames) ) {
+            if($columnNames == "*") $this->mColumns["all_columns"] = true;
+            else $this->mColumns[] = array("name" => $columnNames, "alias" => NULL);
         }
-        if($columnNames == "*") {
-            // indicates that all columns will be selected
-            $this->mColumns[$tableName]["all_columns"] = true;
-        }
-        else if(!$this->mColumns[$tableName]["all_columns"]) {
-            // add specified columns
-            if( is_array($columnNames) ) {
-                foreach($columnNames as &$val) {
-                    $this->mColumns[$tableName]["columns"][] = $val;
+        else if( is_array($columnNames) && !empty($columnNames) ) {
+            foreach($columnNames as $key => $val) {
+                // key is col name and val is alias
+                if( is_string($key) && is_string($val) ) {
+                    $this->mColumns[] = array("name" => $key, "alias" => $val);
+                }
+                else if( is_string($val) ) {
+                    $this->mColumns[] = array("name" => $val, "alias" => NULL);
                 }
             }
-            else {
-                $this->mColumns[$tableName]["columns"][] = $columnNames;
-            }
         }
+
         $this->enforceCompilation();
         return $this;
     }

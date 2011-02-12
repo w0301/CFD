@@ -222,8 +222,8 @@ class DbDriver extends Object {
      * @param string $tableName Name of table that this select query selects from.
      * @return New @b object of type \\cfd\\core\\DbSelectQuery.
      */
-    public function select($tableName) {
-        return $this->mCurrentDriver->createSpecificQuery(DbQuery::SELECT_QUERY, $tableName, $this);
+    public function select($tableName, $alias = NULL) {
+        return $this->mCurrentDriver->createSpecificQuery(DbQuery::SELECT_QUERY, $tableName, $alias, $this);
     }
 
 } DbDriver::__static();

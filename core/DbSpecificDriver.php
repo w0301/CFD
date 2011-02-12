@@ -56,13 +56,14 @@ interface DbSpecificDriver {
      *  \cfd\core\DbQuery::DROP_QUERY
      * @endcode
      * @param string $tableName Name of table that will be affected by returned query.
+     * @param string $tableAlias Alias for table.
      * @param object $dbDriver Database driver object that create this query and is suppose
      * to send it.
      * @param array $options Additional options passed to query object during creation.
      * These options are query and database system specific.
      * @return New query object suitalbe to handle $queryType query.
      */
-    public static function createSpecificQuery($queryType, $tableName, DbDriver $dbDriver, $options = array());
+    public static function createSpecificQuery($queryType, $tableName, $tableAlias, DbDriver $dbDriver, $options = array());
 
     /**
      * @brief Creates connection to database system.
