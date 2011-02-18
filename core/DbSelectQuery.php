@@ -25,6 +25,16 @@ namespace cfd\core;
  * @see \\cfd\\core\\DbDriver, \\cfd\\core\\DbQuery
  */
 abstract class DbSelectQuery extends DbQuery {
+    /**
+     * Indicates ascending ordering.
+     */
+    const ASC_ORDER = 1;
+
+    /**
+     * Indicates descending ordering.
+     */
+    const DESC_ORDER = 2;
+
     private $mOnlyDistinct = false;
     private $mExpressionsCount = 0;
 
@@ -95,6 +105,21 @@ abstract class DbSelectQuery extends DbQuery {
     protected $mExpressions = array();
 
     /**
+     * @brief Array of order informations.
+     *
+     * This array contains column names according
+     * to which ordering should be done. It also contains
+     * ordering type for each column:
+     * @code
+     * 	$mOrdering = array(
+     * 		array("column" => "id", "type" => DbSelectQuery::ASC_ORDER),
+     * 		array("column" => "name", "type" => DbSelectQuery::DESC_ORDER)
+     * 	);
+     * @endcode
+     */
+    protected $mOrdering = array();
+
+    /**
      * @brief Constructs new query.
      *
      * Creates new select query.
@@ -140,6 +165,22 @@ abstract class DbSelectQuery extends DbQuery {
      */
     public function isOnlyDistinct() {
         return $this->mOnlyDistinct;
+    }
+
+    /**
+     * @brief Adds ordering parameter.
+     *
+     * This function adds column with specified ordering type to
+     * internal array which will be processed by compile() function.
+     *
+     * @param string $column Name of column according to which ordering will occur.
+     * @param integer $type Type of ordering. Can be \\cfd\\core\\DbSelectQuery::ASC_ORDER
+     * or \\cfd\\core\\DbSelectQuery::DESC_ORDER.
+     * @return Current query object ($this).
+     */
+    public function order($column, $type = DbSelectQuery::ASC_ORDER) {
+        $this->mOrdering[] = array("column" => $column, "type" => $type);
+        return $this;
     }
 
     /**

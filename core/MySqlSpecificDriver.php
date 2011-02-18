@@ -146,6 +146,9 @@ class MySqlSelectQuery extends DbSelectQuery {
         // creating query for MySQL
         $res = "SELECT ";
 
+        // if we want only distinct entries
+        if( $this->isOnlyDistinct() ) $res .= "DISTINCT ";
+
         // right table name - alias if specified or full name if not
         $tableName = is_null( $this->getTableNameAlias() ) ? $this->getTableName() : $this->getTableNameAlias();
 
@@ -184,6 +187,23 @@ class MySqlSelectQuery extends DbSelectQuery {
         // adding where clause
         if( !$this->mCondition->isEmpty() ) {
             $res .= " WHERE " . $this->mCondition->compile();
+        }
+
+        // adding order by clause
+        if( !empty($this->mOrdering) ) {
+            $res .= " ORDER BY ";
+            $done = 0;
+            $size = count($this->mOrdering);
+            foreach($this->mOrdering as $col) {
+                $res .= $col["column"] . " ";
+                if($col["type"] == DbSelectQuery::DESC_ORDER) {
+                    $res .= "DESC";
+                }
+                else {
+                    $res .= "ASC";
+                }
+                if(++$done != $size) $res .= ", ";
+            }
         }
 
         // adding limit of selection

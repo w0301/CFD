@@ -33,10 +33,18 @@ try {
     $res = $db->select("test_table_name", "t")->
             columns( array("id", "name", "address") )->
             //expression( "COUNT(*)", "full_count" )->
-            condition( cfd\core\DbCondition::andCondition()->prop("t.name", "%", "<>") )->
+            //distinct(true)->
+            condition(
+                cfd\core\DbCondition::orCondition()->prop("name", "1", "=")->
+                condition( cfd\core\DbCondition::andCondition()->prop("name", "'Adam'", "=") )->
+                condition( cfd\core\DbCondition::andCondition()->prop("name", "'Ri%'", "LIKE") )
+            )->
             condition( cfd\core\DbCondition::andCondition()->prop("t.id", array(60, 65), "BETWEEN") )->
             limit(0, 0)->
+            order("id", cfd\core\DbSelectQuery::ASC_ORDER)->
+            order("name", cfd\core\DbSelectQuery::DESC_ORDER)->
             send();
+
     while( ($row = $res->fetchRow(cfd\core\DbQueryResult::NAME_INDEXES)) !== false ) {
         print_r($row);
         echo "name: " . $row["name"] . "<br/>";

@@ -31,8 +31,7 @@ class DbCondition extends Object {
     private function getStringForValue() {
         // returns string that has to be used as right side of operator statement
         $res = "";
-        if( is_numeric($this->mValue) ) $res = $this->mValue;
-        else if( is_array($this->mValue) && ($this->mOperator == "IN" || $this->mOperator == "NOT IN") ) {
+        if( is_array($this->mValue) && ($this->mOperator == "IN" || $this->mOperator == "NOT IN") ) {
             $res .= "(";
             $done = 0;
             $size = count($this->mValue);
@@ -53,7 +52,7 @@ class DbCondition extends Object {
                 if($done == 2) break;
             }
         }
-        else $res = "'" . $this->mValue . "'";
+        else $res = $this->mValue;
 
         return $res;
     }
@@ -88,7 +87,9 @@ class DbCondition extends Object {
      *
      * This function sets default properties for this object. Note
      * that properties of subconditions are appended to current object's
-     * properties during compilation of condition.
+     * properties during compilation of condition. Note that if you want to
+     * pass string $variable or $value value you have to use single quotes
+     * around the string.
      *
      * @param string $variable Name of variable, or any other left operand of condition.
      * @param string $value Value of variable to be test, or any other right operand. For
