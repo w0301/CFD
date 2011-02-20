@@ -35,6 +35,26 @@ abstract class DbSelectQuery extends DbQuery {
      */
     const DESC_ORDER = 2;
 
+    /**
+     * Indicates inner join in join() function.
+     */
+    const INNER_JOIN = 1;
+
+    /**
+     * Indicates left join in join() function.
+     */
+    const LEFT_JOIN = 2;
+
+    /**
+     * Indicates right join in join() function.
+     */
+    const RIGHT_JOIN = 3;
+
+    /**
+     * Indicates full join in join() function.
+     */
+    const FULL_JOIN = 4;
+
     private $mOnlyDistinct = false;
     private $mExpressionsCount = 0;
 
@@ -73,7 +93,8 @@ abstract class DbSelectQuery extends DbQuery {
      * @code
      *  $mColumns = array(
      *  	"all_columns" => false,
-     *  	0 => array("name" => "col1", "alias" => "c1"), 1 => array("name" => "col2", "alias" => NULL)
+     *  	array("name" => "col1", "alias" => "c1"),
+     *  	array("name" => "col2", "alias" => NULL)
      *  );
      * @endcode
      *
@@ -118,6 +139,146 @@ abstract class DbSelectQuery extends DbQuery {
      * @endcode
      */
     protected $mOrdering = array();
+
+    /**
+     * @brief Array of joined queries.
+     *
+     * This array contains information about all select queries that
+     * should be joined with this query:
+     * @code
+     * 	$mJoins = array(
+     * 		array("query" => new DbSelectQuery(), "type" => DbSelectQuery::INNER_JOIN, "on" => new DbCondition())
+     * 	);
+     * @endcode
+     */
+    protected $mJoins = array();
+
+    /**
+     * @brief Returns array with all columns.
+     *
+     * This function join column arrays of all joined tables
+     * with column array of current query. Array structure:
+     * @code
+     * 	$arr = array(
+     * 		array("name" => "columnName", "alias" => "alias"),
+     * 		array("name" => "columnName2", "alias" => NULL)
+     * 	);
+     * @endcode
+     *
+     * @return Array that contains all columns that should be selected.
+     */
+    protected function getAllColumns() {
+        $resArr = array();
+        if($this->mColumns["all_columns"]) {
+            // we just add "table.*" column, with out alias!
+            $add = "";
+            if( is_null( $this->getTableNameAlias() ) ) $add .= $this->getTableName();
+            else $add .= $this->getTableNameAlias();
+            $add .= ".*";
+            $resArr[] = array("name" => $add, "alias" => NULL);
+        }
+        else {
+            // we have to add all columns with apropirate aliases
+            foreach($this->mColumns as $key => $val) {
+                if( is_array($val) ) {
+                    $add = "";
+                    if( is_null( $this->getTableNameAlias() ) ) $add .= $this->getTableName();
+                    else $add .= $this->getTableNameAlias();
+                    $add .= "." . $val["name"];
+                    $resArr[] = array("name" => $add, "alias" => $val["alias"]);
+                }
+            }
+        }
+
+        // now adding columns from joind queries
+        foreach($this->mJoins as &$val) {
+            $toAddArr = $val["query"]->getAllColumns();
+            foreach($toAddArr as $col) {
+                $resArr[] = $col;
+            }
+        }
+
+        return $resArr;
+    }
+
+    /**
+     * @brief Returns all conditions.
+     *
+     * This function adds all conditions to one and return
+     * coressponding condition object.
+     *
+     * @return @b Object of \\cfd\\core\\DbCondition type.
+     */
+    protected function getAllConditions() {
+        // firsly clone current condition
+        $resCond = clone $this->mCondition;
+
+        // after that adds condition of joined queries
+        foreach($this->mJoins as &$val) {
+            $cond = $val["query"]->getAllConditions();
+            if( !$cond->isEmpty() ) $resCond->condition($cond);
+        }
+
+        return $resCond;
+    }
+
+    /**
+     * @brief Returns all conditions.
+     *
+     * Merge all expression arrays of all joined queries with
+     * current expression array. Returned array structure:
+     * @code
+     * 	$arr = array(
+     * 		array("expression" => "expStr", "alias" => "aliasStr")
+     * 	);
+     * @endcode
+     *
+     * @return @b Array with all expressions.
+     */
+    protected function getAllExpressions() {
+        $resArr = array();
+
+        // firstly adding current expressions
+        foreach($this->mExpressions as $exp) {
+            $resArr[] = $exp;
+        }
+
+        // and now adding expressions of joined queries
+        foreach($this->mJoins as &$val) {
+            $toAddArr = $val["query"]->getAllExpressions();
+            foreach($toAddArr as $exp) {
+                $resArr[] = $exp;
+            }
+        }
+
+        return $resArr;
+    }
+
+    /**
+     * @brief Returns all joins.
+     *
+     * Merge all joins arrays recursively.
+     *
+     * @return @b Array with all joins.
+     */
+    protected function getAllJoins() {
+        $resArr = array();
+
+        // firstly adding current expressions
+        foreach($this->mJoins as &$join) {
+            $resArr[] = $join;
+        }
+
+        // and now adding expressions of joined queries
+        foreach($this->mJoins as &$val) {
+            $toAddArr = $val["query"]->getAllJoins();
+            foreach($toAddArr as &$join) {
+                $resArr[] = $join;
+            }
+        }
+
+        return $resArr;
+    }
 
     /**
      * @brief Constructs new query.
@@ -180,6 +341,34 @@ abstract class DbSelectQuery extends DbQuery {
      */
     public function order($column, $type = DbSelectQuery::ASC_ORDER) {
         $this->mOrdering[] = array("column" => $column, "type" => $type);
+        return $this;
+    }
+
+    /**
+     * @brief Adds query to be joined.
+     *
+     * Adds select query object to internal array for joins. All queris
+     * will be joined to query during compile() function.
+     *
+     * @param object $query Select query object that will be joined. All where conditions
+     * of joined query will be added to host query (only during compilation). Also all columns
+     * from joined query will be selected by host query.
+     * @param object $on Condition that handle join. (after "ON" keyword in SQL)
+     * @param integer $type Type of join. Can be one of following:
+     * @code
+     *  \cfd\core\DbSelectQuery::INNER_JOIN
+     *  \cfd\core\DbSelectQuery::LEFT_JOIN
+     *  \cfd\core\DbSelectQuery::RIGHT_JOIN
+     *  \cfd\core\DbSelectQuery::FULL_JOIN
+     * @endcode
+     * @return Current object ($this).
+     */
+    public function join(DbSelectQuery $query, DbCondition $on, $type = DbSelectQuery::INNER_JOIN) {
+        $this->mJoins[] = array(
+            "query" => $query,
+            "on" => $on,
+            "type" => $type
+        );
         return $this;
     }
 

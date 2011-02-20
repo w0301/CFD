@@ -152,44 +152,63 @@ class MySqlSelectQuery extends DbSelectQuery {
         // right table name - alias if specified or full name if not
         $tableName = is_null( $this->getTableNameAlias() ) ? $this->getTableName() : $this->getTableNameAlias();
 
-        // adding columns names
-        $size = count($this->mColumns);
-        $sizeExp = count($this->mExpressions);
-        if($this->mColumns["all_columns"]) {
-            $res .= $tableName . ".*";
-            if($sizeExp > 0) $res .= ", ";
-        }
-        else {
-            $done = 0;
-            foreach($this->mColumns as $key => &$val) {
-                if($key !== "all_columns") {
-                    $res .= $tableName . "." . $val["name"];
-                    if( !is_null($val["alias"]) ) $res .= " AS " . $val["alias"];
-                    if(++$done != $size) $res .= ", ";
-                }
-                else $done++;
-            }
-            if($sizeExp > 0) $res .= ", ";
+        // adding columns names and alises
+        $colArr = $this->getAllColumns();
+        $colArrSize = count($colArr);
+
+        $done = 0;
+        foreach($colArr as &$col) {
+            $res .= $col["name"];
+            if( !empty($col["alias"]) ) $res .= " AS " . $col["alias"];
+            if(++$done != $colArrSize) $res .= ", ";
         }
 
         // adding expressions with there aliases
+        $expArr = $this->getAllExpressions();
+        $expArrSize = count($expArr);
+        if($expArrSize > 0) $res .= ", ";
+
         $done = 0;
-        foreach($this->mExpressions as &$exp) {
+        foreach($expArr as &$exp) {
             $res .= $exp["expression"] . " AS " . $exp["alias"];
-            if(++$done != $size) $res .= ", ";
+            if(++$done != $expArrSize) $res .= ", ";
         }
 
         // adding table name with alias to query
         $res .= " FROM " . $this->getTableName();
         if( !is_null($this->getTableNameAlias()) ) $res .= " AS " . $this->getTableNameAlias();
 
-
-        // adding where clause
-        if( !$this->mCondition->isEmpty() ) {
-            $res .= " WHERE " . $this->mCondition->compile();
+        // adding joined tables
+        $joinsArr = $this->getAllJoins();
+        foreach($joinsArr as &$join) {
+            switch($join["type"]) {
+                case DbSelectQuery::INNER_JOIN:
+                    $res .= " INNER JOIN ";
+                    break;
+                case DbSelectQuery::LEFT_JOIN:
+                    $res .= " LEFT JOIN ";
+                    break;
+                case DbSelectQuery::RIGHT_JOIN:
+                    $res .= " RIGHT JOIN ";
+                    break;
+                case DbSelectQuery::FULL_JOIN:
+                    $res .= " FULL JOIN ";
+                    break;
+            }
+            $query = $join["query"];
+            $on = $join["on"];
+            $res .= $query->getTableName();
+            if( !is_null($query->getTableNameAlias()) ) $res .= " AS " . $query->getTableNameAlias();
+            if( !$on->isEmpty() ) $res .= " ON " . $on->compile();
         }
 
-        // adding order by clause
+        // adding where clause
+        $cond = $this->getAllConditions();
+        if( !$cond->isEmpty() ) {
+            $res .= " WHERE " . $cond->compile();
+        }
+
+        // adding "order by" clause
         if( !empty($this->mOrdering) ) {
             $res .= " ORDER BY ";
             $done = 0;

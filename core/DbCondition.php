@@ -24,35 +24,33 @@ class DbCondition extends Object {
     private $mNeedCompilation = true;
     private $mLastCompileOutput = NULL;
     private $mBinOperator = NULL;
-    private $mVariable = NULL;
+    private $mLOperand = NULL;
+    private $mROperand = NULL;
     private $mOperator = NULL;
-    private $mValue = NULL;
 
-    private function getStringForValue() {
+    private static function getStringForValue($val, $op) {
         // returns string that has to be used as right side of operator statement
         $res = "";
-        if( is_array($this->mValue) && ($this->mOperator == "IN" || $this->mOperator == "NOT IN") ) {
+        if( is_array($val) && ($op == "IN" || $op == "NOT IN") ) {
             $res .= "(";
             $done = 0;
-            $size = count($this->mValue);
-            foreach($this->mValue as $val) {
-                if( is_integer($val) || is_float($val) ) $res .= $val;
-                else $res .= "'" . $val . "'";
+            $size = count($val);
+            foreach($val as $v) {
+                $res .= $v;
                 if(++$done != $size) $res .= ", ";
             }
             $res .= ")";
         }
-        else if( is_array($this->mValue) ) {
+        else if( is_array($val) ) {
             $done = 0;
-            $size = count($this->mValue);
-            foreach($this->mValue as $val) {
-                if( is_integer($val) || is_float($val) ) $res .= $val;
-                else $res .= "'" . $val . "'";
+            $size = count($val);
+            foreach($val as $v) {
+                $res .= $v;
                 if(++$done != $size) $res .= " AND ";
                 if($done == 2) break;
             }
         }
-        else $res = $this->mValue;
+        else return $val;
 
         return $res;
     }
@@ -78,8 +76,8 @@ class DbCondition extends Object {
      * @return @b True if condition is empty, @b false otherwise.
      */
     public function isEmpty() {
-        return count( $this->getChildren() ) == 0 &&
-            ( empty($this->mVariable) || empty($this->mOperator) || empty($this->mValue) );
+        $children =& $this->getChildren();
+        return empty($children) && ( empty($this->mLOperand) || empty($this->mROperand) );
     }
 
     /**
@@ -88,11 +86,11 @@ class DbCondition extends Object {
      * This function sets default properties for this object. Note
      * that properties of subconditions are appended to current object's
      * properties during compilation of condition. Note that if you want to
-     * pass string $variable or $value value you have to use single quotes
+     * pass string $lOperand or $value value you have to use single quotes
      * around the string.
      *
-     * @param string $variable Name of variable, or any other left operand of condition.
-     * @param string $value Value of variable to be test, or any other right operand. For
+     * @param mixed $lOperand Name of variable, or any other left operand of condition.
+     * @param mixed $rOperand Value of variable to be test, or any other right operand. For
      * 'BETWEEN' and 'IN' operators this has to be array.
      * @param string $operator Operator to be used between $variable and $value.
      * Folowing operators are supported:
@@ -107,12 +105,19 @@ class DbCondition extends Object {
      *	'LIKE' and 'NOT LIKE'
      *	'IN' and 'NOT IN'
      * @endcode
+     * @param array $args Array with variable names and values that will be substituted
+     * from $lOperand and $rOperand.
      * @return Current object ($this).
+     * @see \\cfd\\core\\DbDriver::filterVariables()
      */
-    public function prop($variable, $value, $operator = "=") {
-        $this->mVariable = $variable;
-        $this->mValue = $value;
-        $this->mOperator = $operator;
+    public function prop($lOperand, $rOperand, $operator = "=", $args = array()) {
+        // applying filters
+        DbDriver::filterVariables($args);
+
+        // setting properties
+        $this->mLOperand = DbDriver::substituteVariables($lOperand, $args);
+        $this->mROperand = DbDriver::substituteVariables($this->getStringForValue($rOperand, $operator), $args);
+        $this->mOperator = empty($operator) ? "=" : $operator;
         $this->mNeedCompilation = true;
         return $this;
     }
@@ -142,21 +147,17 @@ class DbCondition extends Object {
         if($this->mNeedCompilation) {
             $this->mLastCompileOutput = "";
 
-            // count of children
-            $children =& $this->getChildren();
-            $size = count($children);
-
-            // empty operator means '='
-            if( empty($this->mOperator) ) $this->mOperator = "=";
+            // count of children and children array
+            $childrenArr =& $this->getChildren();
+            $childrenArrSize = count($childrenArr);
 
             // adding current props
-            $isAllSet = !empty($this->mVariable) && !empty($this->mValue);
-            if($isAllSet) {
-                if($size > 0) $this->mLastCompileOutput .= "(";
-                $this->mLastCompileOutput .= $this->mVariable;
+            if( !empty($this->mLOperand) && !empty($this->mROperand) ) {
+                if($childrenArrSize > 0) $this->mLastCompileOutput .= "(";
+                $this->mLastCompileOutput .= $this->mLOperand;
                 $this->mLastCompileOutput .= " " . $this->mOperator . " ";
-                $this->mLastCompileOutput .= $this->getStringForValue();
-                if($size > 0) {
+                $this->mLastCompileOutput .= $this->mROperand;
+                if($childrenArrSize > 0) {
                     $this->mLastCompileOutput .= ")";
                     $this->mLastCompileOutput .= " " . $this->mBinOperator . " ";
                 }
@@ -164,9 +165,9 @@ class DbCondition extends Object {
 
             // adding props of children
             $done = 0;
-            foreach($children as $child) {
+            foreach($childrenArr as $child) {
                 $this->mLastCompileOutput .= "(" . $child->compile() . ")";
-                if(++$done != $size)  $this->mLastCompileOutput .= " " . $this->mBinOperator . " ";
+                if(++$done != $childrenArrSize)  $this->mLastCompileOutput .= " " . $this->mBinOperator . " ";
             }
         }
         return $this->mLastCompileOutput;

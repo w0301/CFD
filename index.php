@@ -23,31 +23,35 @@ try {
     var_dump( $obj->emit( 'This is string with variable with value @var!', array("@var" => $val) ) );
     echo "</pre>";
 
-    $db = new DbDriver("mysql", "localhost", "cfd_test", "root", "root");
+    $db = new DbDriver("mysql", "localhost", "cfd_test", "root", "root", "test_");
     //$db->updateQuery("test_table_name", array("name" => "Richard", "address" => "Bratislava"), "name!='Richard'");
     //$db->deleteQuery("test_table_name", "name='Richard'");
     //$db->insertQuery("test_table_name", array("name" => "Adam", "address" => "Ahem"));
     //$res = $db->selectQuery("*", "test_table_name");
     //$res = $db->query("SELECT test_table_name.name, new_table.text FROM test_table_name, new_table");
 
-    $res = $db->select("test_table_name", "t")->
+    $res = $db->select("table_name", "t1")->
             columns( array("id", "name", "address") )->
             //expression( "COUNT(*)", "full_count" )->
             //distinct(true)->
-            condition(
+            /*condition(
                 cfd\core\DbCondition::orCondition()->prop("name", "1", "=")->
                 condition( cfd\core\DbCondition::andCondition()->prop("name", "'Adam'", "=") )->
                 condition( cfd\core\DbCondition::andCondition()->prop("name", "'Ri%'", "LIKE") )
-            )->
-            condition( cfd\core\DbCondition::andCondition()->prop("t.id", array(60, 65), "BETWEEN") )->
+            )->*/
+            //condition( cfd\core\DbCondition::andCondition()->prop("t1.id", array(60, 61, 62), "NOT IN") )
             limit(0, 0)->
             order("id", cfd\core\DbSelectQuery::ASC_ORDER)->
             order("name", cfd\core\DbSelectQuery::DESC_ORDER)->
+            join(
+                $db->select("table_name2", "t2")->columns( array("tel" => "phone") ),
+                cfd\core\DbCondition::andCondition()->prop("t1.id", "t2.t_id", "=")
+            )->
             send();
 
     while( ($row = $res->fetchRow(cfd\core\DbQueryResult::NAME_INDEXES)) !== false ) {
         print_r($row);
-        echo "name: " . $row["name"] . "<br/>";
+        echo "<br/>";
     }
 }
 catch(cfd\core\DbDriverException $e) {

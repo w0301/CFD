@@ -34,6 +34,11 @@ namespace cfd\core;
 class DbDriver extends Object {
     private static $sSpecificDrivers = array();
     private $mCurrentDriver = NULL;
+    private $mTableNamePrefix = "";
+
+    private function addTablePrefix($table) {
+        return $this->mTableNamePrefix . $table;
+    }
 
     /**
      * @brief Filters variables values.
@@ -107,11 +112,15 @@ class DbDriver extends Object {
      * ot empty string ("") when database shouldn't be selected.
      * @param string $user Name of user to login.
      * @param string $pass Password for user.
+     * @param string $tablePrefix Prefix that will be added to all table names in function like select().
      * @param array $driversOptions Driver specific options in array.
      * @param Object $parent Parent for created object.
      */
-    public function __construct($driverName, $host, $dbName = "", $user = "", $pass = "", $driversOptions = array(), Object $parent = NULL) {
+    public function __construct($driverName, $host, $dbName = "", $user = "", $pass = "", $tablePrefix = "", $driversOptions = array(), Object $parent = NULL) {
         parent::__construct($parent);
+
+        // init of prefix for table names
+        $this->mTableNamePrefix = $tablePrefix;
 
         // connecting to database system with chosen driver
         if( !array_key_exists($driverName, self::$sSpecificDrivers) ) {
@@ -146,6 +155,15 @@ class DbDriver extends Object {
 
         // registering all core specific drivers
         self::registerSpecificDriver("\cfd\core\MySqlSpecificDriver");
+    }
+
+    /**
+     * @brief Returns table prefix.
+     *
+     * @return @b String that contains prefix for all table names.
+     */
+    public function getTablePrefix() {
+        return $this->mTableNamePrefix;
     }
 
     /**
@@ -216,14 +234,18 @@ class DbDriver extends Object {
      * @brief Creates select query.
      *
      * Use this function to return select query object that you can
-     * edit for your select needs. Object implements \\cfd\\core\\DbSelectQuery class
-     * interface.
+     * edit for your select needs. Returned object extends \\cfd\\core\\DbSelectQuery class.
      *
-     * @param string $tableName Name of table that this select query selects from.
+     * @param string $tableName Name of table that this select query selects from. Note that
+     * current table prefix is prepended to this name.
+     * @param string $alias Alias used for table. When specified anywhere where table name
+     * is needed you have to put this alias in. It's generally good idea to decalre alias
+     * because there is table prefix feature which makes it hard to determine exact table name.
      * @return New @b object of type \\cfd\\core\\DbSelectQuery.
+     * @see getTablePrefix()
      */
     public function select($tableName, $alias = NULL) {
-        return $this->mCurrentDriver->createSpecificQuery(DbQuery::SELECT_QUERY, $tableName, $alias, $this);
+        return $this->mCurrentDriver->createSpecificQuery(DbQuery::SELECT_QUERY, $this->addTablePrefix($tableName), $alias, $this);
     }
 
 } DbDriver::__static();
