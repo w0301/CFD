@@ -46,6 +46,8 @@ class MySqlSpecificDriver implements DbSpecificDriver {
         switch($queryType) {
             case DbQuery::SELECT_QUERY:
                 return new MySqlSelectQuery($tableName, $tableAlias, $dbDriver);
+            case DbQuery::INSERT_QUERY:
+                return new MySqlInsertQuery($tableName, $dbDriver);
         }
     }
 
@@ -231,6 +233,27 @@ class MySqlSelectQuery extends DbSelectQuery {
         }
 
         return $res;
+    }
+
+}
+
+class MySqlInsertQuery extends DbInsertQuery {
+
+    public function compile() {
+        // creating strings with column names and values
+        $columns = "";
+        $values = "";
+        $sizeOfValuesArr = count($this->mValues);
+        $done = 0;
+        foreach($this->mValues as &$val) {
+            $columns .= $val["column"];
+            $values .= $val["value"];
+            if(++$done != $sizeOfValuesArr) {
+                $columns .= ", ";
+                $values .= ", ";
+            }
+        }
+        return ("INSERT INTO " . $this->getTableName() . "(" . $columns . ") VALUES(" . $values . ")");
     }
 
 }

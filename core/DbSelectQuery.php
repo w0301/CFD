@@ -14,7 +14,7 @@
 namespace cfd\core;
 
 /**
- * @brief Constructs select query.
+ * @brief Class for select query.
  *
  * This class can be used to construct select query for
  * database. It's abstract class that has to be extend by

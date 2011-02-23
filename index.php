@@ -24,11 +24,10 @@ try {
     echo "</pre>";
 
     $db = new DbDriver("mysql", "localhost", "cfd_test", "root", "root", "test_");
-    //$db->updateQuery("test_table_name", array("name" => "Richard", "address" => "Bratislava"), "name!='Richard'");
-    //$db->deleteQuery("test_table_name", "name='Richard'");
-    //$db->insertQuery("test_table_name", array("name" => "Adam", "address" => "Ahem"));
-    //$res = $db->selectQuery("*", "test_table_name");
-    //$res = $db->query("SELECT test_table_name.name, new_table.text FROM test_table_name, new_table");
+
+    //$res = $db->insert("table_name")->values( array("name" => "'Rick'", "address" => "name") )->send();
+    //var_dump($res);
+    //echo "<br/>";
 
     $res = $db->select("table_name", "t1")->
             columns( array("id", "name", "address") )->
@@ -39,14 +38,15 @@ try {
                 condition( cfd\core\DbCondition::andCondition()->prop("name", "'Adam'", "=") )->
                 condition( cfd\core\DbCondition::andCondition()->prop("name", "'Ri%'", "LIKE") )
             )->*/
-            //condition( cfd\core\DbCondition::andCondition()->prop("t1.id", array(60, 61, 62), "NOT IN") )
+            //condition( cfd\core\DbCondition::andCondition()->prop("t1.id", array(60, 61, 62), "NOT IN") )->
+            //condition( cfd\core\DbCondition::andCondition()->prop("t1.name", "'Rick'", "!=") )->
             limit(0, 0)->
             order("id", cfd\core\DbSelectQuery::ASC_ORDER)->
             order("name", cfd\core\DbSelectQuery::DESC_ORDER)->
-            join(
+            /*join(
                 $db->select("table_name2", "t2")->columns( array("tel" => "phone") ),
                 cfd\core\DbCondition::andCondition()->prop("t1.id", "t2.t_id", "=")
-            )->
+            )->*/
             send();
 
     while( ($row = $res->fetchRow(cfd\core\DbQueryResult::NAME_INDEXES)) !== false ) {
@@ -59,6 +59,7 @@ catch(cfd\core\DbDriverException $e) {
     if($e->getQuery() != "") {
         $msg .= cfd\core\I18n::tr("\tDatabase query was not successful.\n");
         $msg .= cfd\core\I18n::tr( "\tSQL query was: !s\n", array("!s" => $e->getQuery()) );
+        $msg .= cfd\core\I18n::tr( "\tSQL error message: !s\n", array("!s" => $e->getMessage()) );
     }
     else {
         $msg .= cfd\core\I18n::tr("\tDatabase connection can't be established.\n");

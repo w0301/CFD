@@ -239,13 +239,28 @@ class DbDriver extends Object {
      * @param string $tableName Name of table that this select query selects from. Note that
      * current table prefix is prepended to this name.
      * @param string $alias Alias used for table. When specified anywhere where table name
-     * is needed you have to put this alias in. It's generally good idea to decalre alias
+     * is needed you have to put this alias in. It's generally good idea to declare alias
      * because there is table prefix feature which makes it hard to determine exact table name.
      * @return New @b object of type \\cfd\\core\\DbSelectQuery.
      * @see getTablePrefix()
      */
     public function select($tableName, $alias = NULL) {
         return $this->mCurrentDriver->createSpecificQuery(DbQuery::SELECT_QUERY, $this->addTablePrefix($tableName), $alias, $this);
+    }
+
+    /**
+     * @brief Creates new insert query.
+     *
+     * Use this function to returns instance of \\cfd\\core\\DbInsertQuery class.
+     * This instance can be used to create query and send it to database system.
+     *
+     * @param string $tableName Name of table that will be affected by insert query.
+     * Note that table prefix of driver is prepended to this name.
+     * @return New @b object of type \\cfd\\core\\DbInsertQuery.
+     * @see getTablePrefix()
+     */
+    public function insert($tableName) {
+        return $this->mCurrentDriver->createSpecificQuery(DbQuery::INSERT_QUERY, $this->addTablePrefix($tableName), NULL, $this);
     }
 
 } DbDriver::__static();
