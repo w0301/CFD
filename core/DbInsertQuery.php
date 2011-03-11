@@ -51,7 +51,7 @@ abstract class DbInsertQuery extends DbQuery {
     /**
      * @brief Sets values.
      *
-     * This function sets passes values to be written to database.
+     * This function sets passed values to be written to database.
      *
      * @param array $vals Array with values. Key in array is string with
      * column name and key's value is value that will be inserted.

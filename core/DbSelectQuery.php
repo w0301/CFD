@@ -103,7 +103,7 @@ abstract class DbSelectQuery extends DbQuery {
     protected $mColumns = array();
 
     /**
-     * @biref Array of expressions.
+     * @brief Array of expressions.
      *
      * This array holds all expressions assigned to this query.
      * Each expression is specifed by expression string and alias

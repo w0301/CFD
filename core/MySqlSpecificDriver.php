@@ -48,6 +48,8 @@ class MySqlSpecificDriver implements DbSpecificDriver {
                 return new MySqlSelectQuery($tableName, $tableAlias, $dbDriver);
             case DbQuery::INSERT_QUERY:
                 return new MySqlInsertQuery($tableName, $dbDriver);
+            case DbQuery::UPDATE_QUERY:
+                return new MySqlUpdateQuery($tableName, $dbDriver);
         }
     }
 
@@ -237,6 +239,14 @@ class MySqlSelectQuery extends DbSelectQuery {
 
 }
 
+/**
+ * @brief MySql's insert query.
+ *
+ * Implementation of \\cfd\\core\\DbInsertQuery specific for
+ * MySql database system.
+ *
+ * @see \\cfd\\core\\DbInsertQuery
+ */
 class MySqlInsertQuery extends DbInsertQuery {
 
     public function compile() {
@@ -254,6 +264,36 @@ class MySqlInsertQuery extends DbInsertQuery {
             }
         }
         return ("INSERT INTO " . $this->getTableName() . "(" . $columns . ") VALUES(" . $values . ")");
+    }
+
+}
+
+/**
+ * @brief MySql's update query.
+ *
+ * Implementation of \\cfd\\core\\DbUpdateQuery specific for
+ * MySql database system.
+ *
+ * @see \\cfd\\core\\DbUpdateQuery
+ */
+class MySqlUpdateQuery extends DbUpdateQuery {
+
+    public function compile() {
+        // creating strings with column names and its new values
+        $columnsNewValues = "";
+        $sizeOfValuesArr = count($this->mNewValues);
+        $done = 0;
+        foreach($this->mNewValues as &$val) {
+            $columnsNewValues .= $val["column"] . "=" . $val["value"];
+            if(++$done != $sizeOfValuesArr) {
+                $columnsNewValues .= ", ";
+            }
+        }
+
+        // building final string
+        $res = "UPDATE " . $this->getTableName() . " SET " . $columnsNewValues;
+        if( !$this->mCondition->isEmpty() ) $res .= " WHERE " . $this->mCondition->compile();
+        return $res;
     }
 
 }

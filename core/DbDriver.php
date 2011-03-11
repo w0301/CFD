@@ -263,4 +263,20 @@ class DbDriver extends Object {
         return $this->mCurrentDriver->createSpecificQuery(DbQuery::INSERT_QUERY, $this->addTablePrefix($tableName), NULL, $this);
     }
 
+    /**
+     * @brief Creates new update query.
+     *
+     * Creates new object of type \\cfd\\core\\DbUpdateQuery. Use functions
+     * of this class to adjust properties of query and them use \\cfd\\core\\DbUpdateQuery::send()
+     * function to send the query to database system.
+     *
+     * @param string $tableName Name of table that will be affected by this query.
+     * Note that object's table prefix is prepended to this name.
+     * @return New object of type \\cfd\\core\\DbUpdateQuery.
+     * @see getTablePrefix()
+     */
+    public function update($tableName) {
+        return $this->mCurrentDriver->createSpecificQuery(DbQuery::UPDATE_QUERY, $this->addTablePrefix($tableName), NULL, $this);
+    }
+
 } DbDriver::__static();

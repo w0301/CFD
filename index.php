@@ -29,6 +29,13 @@ try {
     //var_dump($res);
     //echo "<br/>";
 
+    $res = $db->update("table_name")->
+            values( array("name" => "'Risko'", "address" => "'Bratislava'") )->
+            condition( cfd\core\DbCondition::andCondition()->prop("id", array(76, 79), "BETWEEN") )->
+            send();
+    var_dump($res);
+    echo "<br/>";
+
     $res = $db->select("table_name", "t1")->
             columns( array("id", "name", "address") )->
             //expression( "COUNT(*)", "full_count" )->

@@ -26,13 +26,44 @@ namespace cfd\core;
  * @see \\cfd\\core\\DbDriver
  */
 abstract class DbQuery extends Object {
+    /**
+     * Indicates select query type.
+     */
     const SELECT_QUERY = 1;
+
+    /**
+     * Indicates insert query type.
+     */
     const INSERT_QUERY = 2;
+
+    /**
+     * Indicates update query type.
+     */
     const UPDATE_QUERY = 3;
+
+    /**
+     * Indicates delete query type.
+     */
     const DELETE_QUERY = 4;
+
+    /**
+     * Indicates create query type.
+     */
     const CREATE_QUERY = 5;
+
+    /**
+     * Indicates truncate query type.
+     */
     const TRUNCATE_QUERY = 6;
+
+    /**
+     * Indicates alter query type.
+     */
     const ALTER_QUERY = 7;
+
+    /**
+     * Indicates drop query type.
+     */
     const DROP_QUERY = 8;
 
     private $mTableName = "";
