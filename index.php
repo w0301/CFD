@@ -47,7 +47,18 @@ try {
     var_dump($res);
     echo "<br/>";
 */
-
+/*
+    $res = $db->truncate("table_name")->
+            send();
+    var_dump($res);
+    echo "<br/>";
+*/
+/*
+    $res = $db->drop("sss", cfd\core\DbDropQuery::DATABASE_DROP)->
+            send();
+    var_dump($res);
+    echo "<br/>";
+*/
     $res = $db->select("table_name", "t1")->
             columns( array("id", "name", "address") )->
             //expression( "COUNT(*)", "full_count" )->

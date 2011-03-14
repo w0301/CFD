@@ -52,6 +52,10 @@ class MySqlSpecificDriver implements DbSpecificDriver {
                 return new MySqlUpdateQuery($tableName, $dbDriver);
             case DbQuery::DELETE_QUERY:
                 return new MySqlDeleteQuery($tableName, $dbDriver);
+            case DbQuery::TRUNCATE_QUERY:
+                return new MySqlTruncateQuery($tableName, $dbDriver);
+            case DbQuery::DROP_QUERY:
+                return new MySqlDropQuery($options["name"], $options["type"], $dbDriver);
         }
     }
 
@@ -315,6 +319,42 @@ class MySqlDeleteQuery extends DbDeleteQuery {
         $res = "DELETE FROM " . $this->getTableName();
         if( !$this->mCondition->isEmpty() ) $res .= " WHERE " . $this->mCondition->compile();
         return $res;
+    }
+
+}
+
+/**
+ * @brief MySql's truncate query.
+ *
+ * Implementation of \\cfd\\core\\DbTruncateQuery specific for
+ * MySql database system.
+ *
+ * @see \\cfd\\core\\DbTruncateQuery
+ */
+class MySqlTruncateQuery extends DbTruncateQuery {
+
+    public function compile() {
+        // easy as a slape (I hope it's possible to say it in english :D)
+        return "TRUNCATE TABLE " . $this->getTableName();
+    }
+
+}
+
+/**
+ * @brief MySql's drop query.
+ *
+ * Implementation of \\cfd\\core\\DbDropQuery specific for
+ * MySql database system.
+ *
+ * @see \\cfd\\core\\DbDropQuery
+ */
+class MySqlDropQuery extends DbDropQuery {
+
+    public function compile() {
+        $res = "DROP ";
+        if( $this->getType() == DbDropQuery::DATABASE_DROP ) $res .= "DATABASE";
+        else $res .= "TABLE";
+        return $res . " " . $this->getName();
     }
 
 }

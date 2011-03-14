@@ -267,7 +267,7 @@ class DbDriver extends Object {
      * @brief Creates new update query.
      *
      * Creates new object of type \\cfd\\core\\DbUpdateQuery. Use functions
-     * of this class to adjust properties of query and them use \\cfd\\core\\DbUpdateQuery::send()
+     * of this class to adjust properties of query and them use \\cfd\\core\\DbQuery::send()
      * function to send the query to database system.
      *
      * @param string $tableName Name of table that will be affected by this query.
@@ -283,7 +283,7 @@ class DbDriver extends Object {
      * @brief Creates new delete query.
      *
      * Use this function to create object of \\cfd\\core\\DbDeleteQuery type.
-     * Then you can adjust returned object's properties and use its \\cfd\\core\\DbUpdateQuery::send()
+     * Then you can adjust returned object's properties and use its \\cfd\\core\\DbQuery::send()
      * function to send query.
      *
      * @param string $tableName Name of table from which rows will be deleted.
@@ -293,6 +293,51 @@ class DbDriver extends Object {
      */
     public function delete($tableName) {
         return $this->mCurrentDriver->createSpecificQuery(DbQuery::DELETE_QUERY, $this->addTablePrefix($tableName), NULL, $this);
+    }
+
+    /**
+     * @brief Creates new truncate query.
+     *
+     * Use this function to create object of \\cfd\\core\\DbTruncateQuery type.
+     * Then you can adjust returned object's properties and use its \\cfd\\core\\DbQuery::send()
+     * function to send query.
+     *
+     * @param string $tableName Name of table which will be truncated.
+     * Note that object's table prefix is prepended.
+     * @return Instance of \\cfd\\core\\DbTruncateQuery.
+     * @see getTablePrefix()
+     */
+    public function truncate($tableName) {
+        return $this->mCurrentDriver->createSpecificQuery(DbQuery::TRUNCATE_QUERY, $this->addTablePrefix($tableName), NULL, $this);
+    }
+
+    /**
+     * @brief Creates new drop query.
+     *
+     * Use this function to create object of \\cfd\\core\\DbDropQuery type.
+     * Then you can adjust returned object's properties and use its \\cfd\\core\\DbQuery::send()
+     * function to send query.
+     *
+     * @param string $name Name of table/database which will be deleted.
+     * Note that if $type is \\cfd\\core\\DbDropQuery::TABLE_DROP object's
+     * table prefix is prepended to this name.
+     * @param integer $type Type of drop query. One of these:
+     * @code
+     *  \cfd\core\DbDropQuery::TABLE_DROP
+     *  \cfd\core\DbDropQuery::DATABASE_DROP
+     * @endcode
+     * @return Instance of \\cfd\\core\\DbDropQuery.
+     * @see getTablePrefix()
+     */
+    public function drop($name, $type = DbDropQuery::TABLE_DROP) {
+        if($type == DbDropQuery::TABLE_DROP) $name = $this->addTablePrefix($name);
+        return $this->mCurrentDriver->createSpecificQuery(
+            DbQuery::DROP_QUERY,
+            NULL, NULL, $this,
+            // this query type use own vars for table/db name so we pass them threw options var
+            // that is the reason why we pass $tableName var as NULL!
+            array("name" => $name, "type" => $type)
+        );
     }
 
 } DbDriver::__static();
