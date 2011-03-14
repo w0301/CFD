@@ -279,4 +279,20 @@ class DbDriver extends Object {
         return $this->mCurrentDriver->createSpecificQuery(DbQuery::UPDATE_QUERY, $this->addTablePrefix($tableName), NULL, $this);
     }
 
+    /**
+     * @brief Creates new delete query.
+     *
+     * Use this function to create object of \\cfd\\core\\DbDeleteQuery type.
+     * Then you can adjust returned object's properties and use its \\cfd\\core\\DbUpdateQuery::send()
+     * function to send query.
+     *
+     * @param string $tableName Name of table from which rows will be deleted.
+     * Note that object's table prefix is prepended.
+     * @return Instance of \\cfd\\core\\DbDeleteQuery.
+     * @see getTablePrefix()
+     */
+    public function delete($tableName) {
+        return $this->mCurrentDriver->createSpecificQuery(DbQuery::DELETE_QUERY, $this->addTablePrefix($tableName), NULL, $this);
+    }
+
 } DbDriver::__static();

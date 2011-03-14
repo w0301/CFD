@@ -50,6 +50,8 @@ class MySqlSpecificDriver implements DbSpecificDriver {
                 return new MySqlInsertQuery($tableName, $dbDriver);
             case DbQuery::UPDATE_QUERY:
                 return new MySqlUpdateQuery($tableName, $dbDriver);
+            case DbQuery::DELETE_QUERY:
+                return new MySqlDeleteQuery($tableName, $dbDriver);
         }
     }
 
@@ -292,6 +294,25 @@ class MySqlUpdateQuery extends DbUpdateQuery {
 
         // building final string
         $res = "UPDATE " . $this->getTableName() . " SET " . $columnsNewValues;
+        if( !$this->mCondition->isEmpty() ) $res .= " WHERE " . $this->mCondition->compile();
+        return $res;
+    }
+
+}
+
+/**
+ * @brief MySql's delete query.
+ *
+ * Implementation of \\cfd\\core\\DbDeleteQuery specific for
+ * MySql database system.
+ *
+ * @see \\cfd\\core\\DbDeleteQuery
+ */
+class MySqlDeleteQuery extends DbDeleteQuery {
+
+    public function compile() {
+        // this is really easy... really!
+        $res = "DELETE FROM " . $this->getTableName();
         if( !$this->mCondition->isEmpty() ) $res .= " WHERE " . $this->mCondition->compile();
         return $res;
     }

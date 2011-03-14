@@ -25,16 +25,28 @@ try {
 
     $db = new DbDriver("mysql", "localhost", "cfd_test", "root", "root", "test_");
 
-    //$res = $db->insert("table_name")->values( array("name" => "'Rick'", "address" => "name") )->send();
-    //var_dump($res);
-    //echo "<br/>";
-
-    $res = $db->update("table_name")->
-            values( array("name" => "'Risko'", "address" => "'Bratislava'") )->
-            condition( cfd\core\DbCondition::andCondition()->prop("id", array(76, 79), "BETWEEN") )->
+/*
+    $res = $db->insert("table_name")->
+            values( array("name" => "'Richard Kakaš'", "address" => "'Bratislava'") )->
             send();
     var_dump($res);
     echo "<br/>";
+*/
+/*
+    $res = $db->update("table_name")->
+            values( array("name" => "'Risko'", "address" => "'@val1'"), array("@val1" => "<city>London</city>") )->
+            condition( cfd\core\DbCondition::andCondition()->prop("id", array(70, 179), "BETWEEN") )->
+            send();
+    var_dump($res);
+    echo "<br/>";
+*/
+/*
+    $res = $db->delete("table_name")->
+            condition( cfd\core\DbCondition::andCondition()->prop("name", "'Rick'", "=") )->
+            send();
+    var_dump($res);
+    echo "<br/>";
+*/
 
     $res = $db->select("table_name", "t1")->
             columns( array("id", "name", "address") )->

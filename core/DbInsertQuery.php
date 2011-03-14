@@ -55,11 +55,15 @@ abstract class DbInsertQuery extends DbQuery {
      *
      * @param array $vals Array with values. Key in array is string with
      * column name and key's value is value that will be inserted.
+     * @param array $args Array with variables and their values that will
+     * be substituted from values in $vals array.
      * @return Current object ($this).
+     * @see DbDriver::substituteVariables()
      */
-    public function values($vals) {
+    public function values($vals, $args = array()) {
+        DbDriver::filterVariables($args);
         foreach($vals as $key => $val) {
-            $this->mValues[] = array("column" => $key, "value" => $val);
+            $this->mValues[] = array("column" => $key, "value" => DbDriver::substituteVariables($val, $args));
         }
         $this->enforceCompilation();
         return $this;

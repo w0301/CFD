@@ -24,7 +24,7 @@ namespace cfd\core;
  *
  * @see \\cfd\\core\\DbDriver, \\cfd\\core\\DbQuery
  */
-abstract class DbSelectQuery extends DbQuery {
+abstract class DbSelectQuery extends DbQuery implements DbQueryWithCondition {
     /**
      * Indicates ascending ordering.
      */
@@ -280,6 +280,11 @@ abstract class DbSelectQuery extends DbQuery {
         return $resArr;
     }
 
+    public function condition(DbCondition $cond) {
+        $this->mCondition->condition($cond);
+        return $this;
+    }
+
     /**
      * @brief Constructs new query.
      *
@@ -441,21 +446,6 @@ abstract class DbSelectQuery extends DbQuery {
             "expression" => $expStr
         );
         $this->enforceCompilation();
-        return $this;
-    }
-
-    /**
-     * @brief Adds new condition.
-     *
-     * Adds condition to where clause of select query. And returns
-     * current object.
-     *
-     * @param object $cond Object that describes condition.
-     * @return Current object ($this).
-     * @see \\cfd\\core\\DbCondition
-     */
-    public function condition(DbCondition $cond) {
-        $this->mCondition->condition($cond);
         return $this;
     }
 

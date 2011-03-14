@@ -21,7 +21,7 @@ namespace cfd\core;
  *
  * @see \\cfd\\core\\DbDriver, \\cfd\\core\\DbQuery
  */
-abstract class DbUpdateQuery extends DbQuery {
+abstract class DbUpdateQuery extends DbQuery implements DbQueryWithCondition {
     /**
      * @brief Array with new values.
      *
@@ -43,6 +43,11 @@ abstract class DbUpdateQuery extends DbQuery {
      */
     protected $mCondition = NULL;
 
+    public function condition(DbCondition $cond) {
+        $this->mCondition->condition($cond);
+        return $this;
+    }
+
     /**
      * @brief Constructs new object.
      *
@@ -62,29 +67,17 @@ abstract class DbUpdateQuery extends DbQuery {
      *
      * @param array $vals Array with values. Key in array is string with
      * column name and key's value is new value for column.
+     * @param array $args Array with variables and their values that will
+     * be substituted from values in $vals array.
      * @return Current object ($this).
+     * @see DbDriver::substituteVariables()
      */
-    public function values($vals) {
+    public function values($vals, $args = array()) {
+        DbDriver::filterVariables($args);
         foreach($vals as $key => $val) {
-            $this->mNewValues[] = array("column" => $key, "value" => $val);
+            $this->mNewValues[] = array("column" => $key, "value" => DbDriver::substituteVariables($val, $args));
         }
         $this->enforceCompilation();
-        return $this;
-    }
-
-    /**
-     * @brief Adds new condition.
-     *
-     * Condition is added to internal object. Use functions
-     * \\cfd\\core\\DbCondition::andCondition() and/or \\cfd\\core\\DbCondition::orCondition()
-     * to create object that will be passed to this function.
-     *
-     * @param object $cond Condition object that will be added
-     * as condition to query.
-     * @return Curretn query object ($this).
-     */
-    public function condition(DbCondition $cond) {
-        $this->mCondition->condition($cond);
         return $this;
     }
 
