@@ -63,7 +63,30 @@ interface DbSpecificDriver {
      * These options are query and database system specific.
      * @return New query object suitalbe to handle $queryType query.
      */
-    public static function createSpecificQuery($queryType, $tableName, $tableAlias, DbDriver $dbDriver, $options = array());
+    public function createSpecificQuery($queryType, $tableName, $tableAlias, DbDriver $dbDriver, $options = array());
+
+    /**
+     * @brief Returns new condition.
+     *
+     * Creates object of condition that is useable for database system for which
+     * this class exists.
+     *
+     * @param string $binOp String that coresponds to binary operator that will
+     * be used in condition.
+     * @return New object of \\cfd\\core\\DbCondition type.
+     */
+    public function createSpecificCondition($binOp);
+
+    /**
+     * @brief Returns new data type.
+     *
+     * Creates object of type \\cfd\\core\\DbDataType.
+     *
+     * @param integer $typeId ID of type that will be created. Enjoy
+     * all constant in \\cfd\\core\\DbDataType class here.
+     * @return New object of type \\cfd\\core\\DbDataType.
+     */
+    public function createSpecificDataType($typeId);
 
     /**
      * @brief Creates connection to database system.

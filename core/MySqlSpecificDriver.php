@@ -42,7 +42,7 @@ class MySqlSpecificDriver implements DbSpecificDriver {
         return "mysql";
     }
 
-    public static function createSpecificQuery($queryType, $tableName, $tableAlias, DbDriver $dbDriver, $options = array()) {
+    public function createSpecificQuery($queryType, $tableName, $tableAlias, DbDriver $dbDriver, $options = array()) {
         switch($queryType) {
             case DbQuery::SELECT_QUERY:
                 return new MySqlSelectQuery($tableName, $tableAlias, $dbDriver);
@@ -57,6 +57,15 @@ class MySqlSpecificDriver implements DbSpecificDriver {
             case DbQuery::DROP_QUERY:
                 return new MySqlDropQuery($options["name"], $options["type"], $dbDriver);
         }
+    }
+
+    public function createSpecificCondition($binOp) {
+        if($binOp == "AND") return new MySqlCondition("AND");
+        return new MySqlCondition("OR");
+    }
+
+    public function createSpecificDataType($typeId) {
+        return new MySqlDataType($typeId);
     }
 
     public function connect($host, $username = "", $password = "", $driverArgs = array()) {
@@ -96,10 +105,10 @@ class MySqlSpecificDriver implements DbSpecificDriver {
 }
 
 /**
- * @brief Manipulate MySQL results.
+ * @brief Manipulate MySql results.
  *
  * This class is implementation of \\cfd\\core\\DbQueryResult for
- * MySQL specific driver.
+ * MySql specific driver.
  *
  * @see \\cfd\\core\\DbQueryResult, \\cfd\\core\\MySqlSpecificDriver
  */
@@ -138,6 +147,119 @@ class MySqlQueryResult implements DbQueryResult {
 
     public function getColumnsCount() {
         return mysql_num_fields($this->mQueryResult);
+    }
+
+}
+
+/**
+ * @brief MySql's condition.
+ *
+ * This is class for contitions for MySql database system.
+ */
+class MySqlCondition extends DbCondition {
+
+    public function compile() {
+        $res = "";
+
+        // count of children and children array
+        $childrenArr =& $this->getChildren();
+        $childrenArrSize = count($childrenArr);
+
+        // adding current props
+        if( !empty($this->mLOperand) && !empty($this->mROperand) ) {
+            if($childrenArrSize > 0) $res .= "(";
+            $res .= $this->mLOperand;
+            $res .= " " . $this->mOperator . " ";
+            $res .= $this->mROperand;
+            if($childrenArrSize > 0) {
+                $res .= ")";
+                $res .= " " . $this->mBinOperator . " ";
+            }
+        }
+
+        // adding props of children
+        $done = 0;
+        foreach($childrenArr as $child) {
+            $res .= "(" . $child->compile() . ")";
+            if(++$done != $childrenArrSize)  $res .= " " . $this->mBinOperator . " ";
+        }
+        return $res;
+    }
+
+}
+
+/**
+ * @brief MySql's data type.
+ *
+ * Specific class for MySql db driver.
+ */
+class MySqlDataType extends DbDataType {
+
+    private function getRealDataTypeName() {
+        static $realNames = array(
+            DbDataType::INTEGER_8    => "TINYINT",
+            DbDataType::INTEGER_16   => "SMALLINT",
+            DbDataType::INTEGER_24   => "MEDIUMINT",
+            DbDataType::INTEGER_32   => "INT",
+            DbDataType::INTEGER_64   => "BIGINT",
+            DbDataType::FLOAT_32     => "FLOAT",
+            DbDataType::FLOAT_64     => "DOUBLE",
+            DbDataType::DECIMAL      => "DECIMAL",
+            DbDataType::TEXT_8       => "TINYTEXT",
+            DbDataType::TEXT_16      => "TEXT",
+            DbDataType::TEXT_24      => "MEDIUMTEXT",
+            DbDataType::TEXT_32      => "LONGTEXT",
+            DbDataType::BLOB_8       => "BLOB",
+            DbDataType::BLOB_16      => "BLOB",
+            DbDataType::BLOB_24      => "MEDIUMBLOB",
+            DbDataType::BLOB_32      => "LONGBLOB",
+            DbDataType::CHAR         => "CHAR",
+            DbDataType::VARCHAR      => "VARCHAR",
+            DbDataType::ENUM         => "ENUM",
+            DbDataType::SET          => "SET",
+            DbDataType::DATE         => "DATE",
+            DbDataType::TIME         => "TIME",
+            DbDataType::DATETIME     => "DATETIME",
+            DbDataType::TIMESTAMP    => "TIMESTAMP"
+        );
+        return $realNames[$this->getType()];
+    }
+
+    public function compile() {
+        // note that we use !col instead of real col name
+        $colName = "!col";
+        $res = $colName . " " . $this->getRealDataTypeName() . " ";
+
+        // adding size and scale info
+        if($this->getSize() != 0 && $this->getType() != DbDataType::SET && $this->getType() != DbDataType::ENUM) {
+            $res .= "(" . $this->getSize();
+            if( $this->getScale() != 0 && ($this->getType() == DbDataType::FLOAT_32 ||
+                                           $this->getType() == DbDataType::FLOAT_64 ||
+                                           $this->getType() == DbDataType::DECIMAL) ) {
+                $res .= ", " . $this->getScale();
+            }
+            $res .= ") ";
+        }
+        else if($this->getType() == DbDataType::SET || $this->getType() == DbDataType::ENUM) {
+            $res .= "(" . implode( ",", $this->getSetArray() ) . ") ";
+        }
+
+        // adding info that are on same line (statement)
+        if( $this->isUnsigned() ) $res .= "UNSIGNED ";
+        if( !$this->isNullable() ) $res .= "NOT NULL ";
+        if( $this->isIncrement() ) $res .= "AUTO_INCREMENT=" . $this->getIncrementFrom() . " ";
+        if( $this->isUnique() ) $res .= "UNIQUE ";
+
+        // adding primary key info if any
+        if( $this->isPrimaryKey() ) $res .= ", PRIMARY KEY(" . $colName . ") ";
+
+        // adding foreign key info if any
+        if( $this->isForeignKey() ) {
+            $infoArr =& $this->getForeignKey();
+            $res .= ", FOREIGN KEY(" . $colName . ") REFERENCES " . $infoArr["table"] . "(" . $infoArr["column"] . ") ";
+        }
+
+        return $res;
     }
 
 }

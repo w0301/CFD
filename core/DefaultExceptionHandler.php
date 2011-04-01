@@ -47,6 +47,8 @@ class DefaultExceptionHandler extends Object implements ExceptionHandler {
     }
 
     /**
+     * @brief Function for handling.
+     *
      * Simply output message and ends script. All '\\n' characters are
      * automatically replaced by "<br/>" by this function. All '\\t' characters
      * are automatically replaced by 4 html spaces. If message is not

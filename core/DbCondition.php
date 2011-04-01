@@ -20,17 +20,51 @@ namespace cfd\core;
  *
  * @see \\cfd\\core\\DbQuery, \\cfd\\core\\DbDriver
  */
-class DbCondition extends Object {
-    private $mNeedCompilation = true;
-    private $mLastCompileOutput = NULL;
-    private $mBinOperator = NULL;
-    private $mLOperand = NULL;
-    private $mROperand = NULL;
-    private $mOperator = NULL;
+abstract class DbCondition extends Object {
+    /**
+     * Variable that holds binary operator for this
+     * conditions. This operator has to be added between
+     * all condition parts during compilation. Can be one
+     * of following:
+     * @code
+     * 	AND
+     * 	OR
+     * @endcode
+     */
+    protected $mBinOperator = NULL;
+
+    /**
+     * Left operand of this condition. Just put this to
+     * final condition string.
+     */
+    protected $mLOperand = NULL;
+
+    /**
+     * Right operand of this condition. Just put this to
+     * final condition string.
+     */
+    protected $mROperand = NULL;
+
+    /**
+     * Operator that has to be present between two operands.
+     * This is one of following:
+     * @code
+     *	'='
+     *	'<> or '!='
+     *	'>'
+     *	'<'
+     *	'>='
+     *	'<='
+     *	'BETWEEN' and 'BETWEEN'
+     *	'LIKE' and 'NOT LIKE'
+     *	'IN' and 'NOT IN'
+     * @endcode
+     */
+    protected $mOperator = NULL;
 
     private static function getStringForValue($val, $op) {
         // returns string that has to be used as right side of operator statement
-        $res = "";
+        $res = $val;
         if( is_array($val) && ($op == "IN" || $op == "NOT IN") ) {
             $res .= "(";
             $done = 0;
@@ -50,8 +84,6 @@ class DbCondition extends Object {
                 if($done == 2) break;
             }
         }
-        else return $val;
-
         return $res;
     }
 
@@ -118,7 +150,6 @@ class DbCondition extends Object {
         $this->mLOperand = DbDriver::substituteVariables($lOperand, $args);
         $this->mROperand = DbDriver::substituteVariables($this->getStringForValue($rOperand, $operator), $args);
         $this->mOperator = empty($operator) ? "=" : $operator;
-        $this->mNeedCompilation = true;
         return $this;
     }
 
@@ -143,55 +174,6 @@ class DbCondition extends Object {
      *
      * @return @b String that contains compilation output.
      */
-    public function compile() {
-        if($this->mNeedCompilation) {
-            $this->mLastCompileOutput = "";
+    public abstract function compile();
 
-            // count of children and children array
-            $childrenArr =& $this->getChildren();
-            $childrenArrSize = count($childrenArr);
-
-            // adding current props
-            if( !empty($this->mLOperand) && !empty($this->mROperand) ) {
-                if($childrenArrSize > 0) $this->mLastCompileOutput .= "(";
-                $this->mLastCompileOutput .= $this->mLOperand;
-                $this->mLastCompileOutput .= " " . $this->mOperator . " ";
-                $this->mLastCompileOutput .= $this->mROperand;
-                if($childrenArrSize > 0) {
-                    $this->mLastCompileOutput .= ")";
-                    $this->mLastCompileOutput .= " " . $this->mBinOperator . " ";
-                }
-            }
-
-            // adding props of children
-            $done = 0;
-            foreach($childrenArr as $child) {
-                $this->mLastCompileOutput .= "(" . $child->compile() . ")";
-                if(++$done != $childrenArrSize)  $this->mLastCompileOutput .= " " . $this->mBinOperator . " ";
-            }
-        }
-        return $this->mLastCompileOutput;
-    }
-
-    /**
-     * @brief Creates new condition object.
-     *
-     * Creates condition object with "AND" binary operator.
-     *
-     * @return New condition object.
-     */
-    public static function andCondition() {
-        return new DbCondition("AND");
-    }
-
-    /**
-     * @brief Creates new condition object.
-     *
-     * Creates condition object with "OR" binary operator.
-     *
-     * @return New condition object.
-     */
-    public static function orCondition() {
-        return new DbCondition("OR");
-    }
 }

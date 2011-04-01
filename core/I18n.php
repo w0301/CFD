@@ -45,10 +45,10 @@ namespace cfd\core;
  * @endcode
  * When you do this subclass you can translate literals in your
  * module's code by calling I18n::tr() function. And this call will
- * translate your strings using the domain that you chose in tr() function.
+ * translate your strings using the domain that you chose in getStringsDomain() function.
  *
  * To allow static function overrides there is always used keyword
- * @b static instead of @b self.
+ * @b static instead of @b self in all functions of this class.
  *
  * @see tr(), $sTranslateString
  */
@@ -229,12 +229,12 @@ class I18n {
      *
      * Note that this is static function.
      *
-     * @param string $strs Singular form in string or singular form plural
-     * form/s in array.
+     * @param mixes $strs Singular form in string or singular form + all plural
+     * forms in array.
      * @param array $vars Array of variables that should be substituted after string
      * translation. It has to contain variable name as key (including '@' or '!' char
      * at the begining of name) and variable's value as key's value (this value can be
-     * also a PHP variable).
+     * also a PHP variable). Leave empty if there are no variables.
      * @param integer $n Number that is used to determine if singular or plural
      * form should be used. This number is simply quantity that is used in string.
      * @return Return value of translate() function with substituted variables.

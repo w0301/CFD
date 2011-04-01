@@ -231,6 +231,43 @@ class DbDriver extends Object {
     }
 
     /**
+     * @brief Creates new condition object.
+     *
+     * Creates condition object with "AND" binary operator.
+     *
+     * @return New condition object.
+     */
+    public function andCondition() {
+        return $this->mCurrentDriver->createSpecificCondition("AND");
+    }
+
+    /**
+     * @brief Creates new condition object.
+     *
+     * Creates condition object with "OR" binary operator.
+     *
+     * @return New condition object.
+     */
+    public function orCondition() {
+        return $this->mCurrentDriver->createSpecificCondition("OR");
+    }
+
+    /**
+     * @brief Creates new data type object.
+     *
+     * Use this function to return data type object for db driver
+     * that is in use.
+     *
+     * @param integer $typeId ID of data type. Use any of constants in
+     * \\cfd\\core\\DbDataType clas.
+     * @return New object of type \\cfd\\core\\DbDataType. Use any of its
+     * function to change its properties.
+     */
+    public function dataType($typeId) {
+        return $this->mCurrentDriver->createSpecificDataType($typeId);
+    }
+
+    /**
      * @brief Creates select query.
      *
      * Use this function to return select query object that you can

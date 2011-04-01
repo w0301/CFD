@@ -80,6 +80,7 @@ class ExceptionHandling {
         self::$sHandleException = new ConditionalSignal();
         self::$sLogException = new NormalSignal();
 
+        // adding default exception handler
         self::addExceptionHandler( DefaultExceptionHandler::getHandler() );
     }
 

@@ -43,7 +43,7 @@ abstract class DbDeleteQuery extends DbQuery implements DbQueryWithCondition {
         parent::__construct($tableName, NULL, $parent);
 
         // creating objects
-        $this->mCondition = DbCondition::andCondition();
+        $this->mCondition = $parent->andCondition();
     }
 
 }

@@ -298,7 +298,7 @@ abstract class DbSelectQuery extends DbQuery implements DbQueryWithCondition {
         parent::__construct($tableName, $tableAlias, $parent);
 
         // condition for query
-        $this->mCondition = new DbCondition("AND");
+        $this->mCondition = $parent->andCondition();
 
         // columns names
         $this->mColumns["all_columns"] = false;

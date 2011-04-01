@@ -27,6 +27,7 @@ namespace cfd\core;
  * @see \\cfd\\core\\ModuleFunctionality, \\cfd\\core\\I18n
  */
 interface StringTranslator extends Functionality {
+
     /**
      * @brief Function that translate string.
      *
@@ -49,4 +50,5 @@ interface StringTranslator extends Functionality {
      * set to false and return variable is pointless.
      */
     public function translateString($domainName, $strsLocale, $strs, $n, &$succeed);
+
 }

@@ -11,7 +11,7 @@
  * @LICENSE_END@
  */
 
-use cfd\core\DbDriver;
+use cfd\core\MySqlDataType;
 require_once("MainSettings.php");
 
 try {
@@ -23,7 +23,7 @@ try {
     var_dump( $obj->emit( 'This is string with variable with value @var!', array("@var" => $val) ) );
     echo "</pre>";
 
-    $db = new DbDriver("mysql", "localhost", "cfd_test", "root", "root", "test_");
+    $db = new cfd\core\DbDriver("mysql", "localhost", "cfd_test", "root", "root", "test_");
 
 /*
     $res = $db->insert("table_name")->
@@ -35,14 +35,14 @@ try {
 /*
     $res = $db->update("table_name")->
             values( array("name" => "'Risko'", "address" => "'@val1'"), array("@val1" => "<city>London</city>") )->
-            condition( cfd\core\DbCondition::andCondition()->prop("id", array(70, 179), "BETWEEN") )->
+            condition( $db->andCondition()->prop("id", array(70, 179), "BETWEEN") )->
             send();
     var_dump($res);
     echo "<br/>";
 */
 /*
     $res = $db->delete("table_name")->
-            condition( cfd\core\DbCondition::andCondition()->prop("name", "'Rick'", "=") )->
+            condition( $db->andCondition()->prop("name", "'Rick'", "=") )->
             send();
     var_dump($res);
     echo "<br/>";
@@ -59,23 +59,24 @@ try {
     var_dump($res);
     echo "<br/>";
 */
+
     $res = $db->select("table_name", "t1")->
             columns( array("id", "name", "address") )->
             //expression( "COUNT(*)", "full_count" )->
             //distinct(true)->
             /*condition(
-                cfd\core\DbCondition::orCondition()->prop("name", "1", "=")->
-                condition( cfd\core\DbCondition::andCondition()->prop("name", "'Adam'", "=") )->
-                condition( cfd\core\DbCondition::andCondition()->prop("name", "'Ri%'", "LIKE") )
+                $db->orCondition()->prop("name", "1", "=")->
+                condition( $db->andCondition()->prop("name", "'Adam'", "=") )->
+                condition( $db->andCondition()->prop("name", "'Ri%'", "LIKE") )
             )->*/
-            //condition( cfd\core\DbCondition::andCondition()->prop("t1.id", array(60, 61, 62), "NOT IN") )->
-            //condition( cfd\core\DbCondition::andCondition()->prop("t1.name", "'Rick'", "!=") )->
+            //condition( $db->andCondition()->prop("t1.id", array(60, 61, 62), "NOT IN") )->
+            //condition( $db->andCondition()->prop("t1.name", "'Rick'", "!=") )->
             limit(0, 0)->
-            order("id", cfd\core\DbSelectQuery::ASC_ORDER)->
-            order("name", cfd\core\DbSelectQuery::DESC_ORDER)->
+            order("id", cfd\core\DbSelectQuery::DESC_ORDER)->
+            order("name", cfd\core\DbSelectQuery::ASC_ORDER)->
             /*join(
                 $db->select("table_name2", "t2")->columns( array("tel" => "phone") ),
-                cfd\core\DbCondition::andCondition()->prop("t1.id", "t2.t_id", "=")
+                $db->andCondition()->prop("t1.id", "t2.t_id", "=")
             )->*/
             send();
 

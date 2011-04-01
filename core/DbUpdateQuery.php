@@ -56,7 +56,7 @@ abstract class DbUpdateQuery extends DbQuery implements DbQueryWithCondition {
      */
     public function __construct($tableName, DbDriver $parent) {
         parent::__construct($tableName, NULL, $parent);
-        $this->mCondition = new DbCondition("AND");
+        $this->mCondition = $parent->andCondition();
     }
 
     /**
