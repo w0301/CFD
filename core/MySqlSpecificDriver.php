@@ -54,6 +54,8 @@ class MySqlSpecificDriver implements DbSpecificDriver {
                 return new MySqlDeleteQuery($tableName, $dbDriver);
             case DbQuery::TRUNCATE_QUERY:
                 return new MySqlTruncateQuery($tableName, $dbDriver);
+            case DbQuery::CREATE_QUERY:
+                return new MySqlCreateQuery($tableName, $dbDriver);
             case DbQuery::DROP_QUERY:
                 return new MySqlDropQuery($options["name"], $options["type"], $dbDriver);
         }
@@ -195,69 +197,57 @@ class MySqlCondition extends DbCondition {
  */
 class MySqlDataType extends DbDataType {
 
-    private function getRealDataTypeName() {
-        static $realNames = array(
-            DbDataType::INTEGER_8    => "TINYINT",
-            DbDataType::INTEGER_16   => "SMALLINT",
-            DbDataType::INTEGER_24   => "MEDIUMINT",
-            DbDataType::INTEGER_32   => "INT",
-            DbDataType::INTEGER_64   => "BIGINT",
-            DbDataType::FLOAT_32     => "FLOAT",
-            DbDataType::FLOAT_64     => "DOUBLE",
-            DbDataType::DECIMAL      => "DECIMAL",
-            DbDataType::TEXT_8       => "TINYTEXT",
-            DbDataType::TEXT_16      => "TEXT",
-            DbDataType::TEXT_24      => "MEDIUMTEXT",
-            DbDataType::TEXT_32      => "LONGTEXT",
-            DbDataType::BLOB_8       => "BLOB",
-            DbDataType::BLOB_16      => "BLOB",
-            DbDataType::BLOB_24      => "MEDIUMBLOB",
-            DbDataType::BLOB_32      => "LONGBLOB",
-            DbDataType::CHAR         => "CHAR",
-            DbDataType::VARCHAR      => "VARCHAR",
-            DbDataType::ENUM         => "ENUM",
-            DbDataType::SET          => "SET",
-            DbDataType::DATE         => "DATE",
-            DbDataType::TIME         => "TIME",
-            DbDataType::DATETIME     => "DATETIME",
-            DbDataType::TIMESTAMP    => "TIMESTAMP"
+    private function getRealDataProperty($propName) {
+        static $props = array(
+            DbDataType::INTEGER_8    => array("name" => "TINYINT", "us" => true),
+            DbDataType::INTEGER_16   => array("name" => "SMALLINT", "us" => true),
+            DbDataType::INTEGER_24   => array("name" => "MEDIUMINT", "us" => true),
+            DbDataType::INTEGER_32   => array("name" => "INT", "us" => true),
+            DbDataType::INTEGER_64   => array("name" => "BIGINT", "us" => true),
+            DbDataType::FLOAT_32     => array("name" => "FLOAT", "fl" => true),
+            DbDataType::FLOAT_64     => array("name" => "DOUBLE", "fl" => true),
+            DbDataType::DECIMAL      => array("name" => "DECIMAL", "fl" => true),
+            DbDataType::TEXT_8       => array("name" => "TINYTEXT"),
+            DbDataType::TEXT_16      => array("name" => "TEXT"),
+            DbDataType::TEXT_24      => array("name" => "MEDIUMTEXT"),
+            DbDataType::TEXT_32      => array("name" => "LONGTEXT"),
+            DbDataType::BLOB_8       => array("name" => "BLOB"),
+            DbDataType::BLOB_16      => array("name" => "BLOB"),
+            DbDataType::BLOB_24      => array("name" => "MEDIUMBLOB"),
+            DbDataType::BLOB_32      => array("name" => "LONGBLOB"),
+            DbDataType::CHAR         => array("name" => "CHAR"),
+            DbDataType::VARCHAR      => array("name" => "VARCHAR"),
+            DbDataType::ENUM         => array("name" => "ENUM", "set" => true),
+            DbDataType::SET          => array("name" => "SET", "set" => true),
+            DbDataType::DATE         => array("name" => "DATE"),
+            DbDataType::TIME         => array("name" => "TIME"),
+            DbDataType::DATETIME     => array("name" => "DATETIME"),
+            DbDataType::TIMESTAMP    => array("name" => "TIMESTAMP")
         );
-        return $realNames[$this->getType()];
+        return !empty($props[$this->getType()][$propName]) ? $props[$this->getType()][$propName] : false;
     }
 
     public function compile() {
         // note that we use !col instead of real col name
         $colName = "!col";
-        $res = $colName . " " . $this->getRealDataTypeName() . " ";
+        $res = $colName . " " . $this->getRealDataProperty("name") . " ";
 
         // adding size and scale info
-        if($this->getSize() != 0 && $this->getType() != DbDataType::SET && $this->getType() != DbDataType::ENUM) {
+        if( $this->getSize() != 0 && !$this->getRealDataProperty("set") ) {
             $res .= "(" . $this->getSize();
-            if( $this->getScale() != 0 && ($this->getType() == DbDataType::FLOAT_32 ||
-                                           $this->getType() == DbDataType::FLOAT_64 ||
-                                           $this->getType() == DbDataType::DECIMAL) ) {
+            if( $this->getScale() != 0 && $this->getRealDataProperty("fl") ) {
                 $res .= ", " . $this->getScale();
             }
             $res .= ") ";
         }
-        else if($this->getType() == DbDataType::SET || $this->getType() == DbDataType::ENUM) {
+        else if( $this->getRealDataProperty("set") ) {
             $res .= "(" . implode( ",", $this->getSetArray() ) . ") ";
         }
 
         // adding info that are on same line (statement)
-        if( $this->isUnsigned() ) $res .= "UNSIGNED ";
+        if( $this->isUnsigned() && $this->getRealDataProperty("us") ) $res .= "UNSIGNED ";
         if( !$this->isNullable() ) $res .= "NOT NULL ";
-        if( $this->isIncrement() ) $res .= "AUTO_INCREMENT=" . $this->getIncrementFrom() . " ";
-        if( $this->isUnique() ) $res .= "UNIQUE ";
-
-        // adding primary key info if any
-        if( $this->isPrimaryKey() ) $res .= ", PRIMARY KEY(" . $colName . ") ";
-
-        // adding foreign key info if any
-        if( $this->isForeignKey() ) {
-            $infoArr =& $this->getForeignKey();
-            $res .= ", FOREIGN KEY(" . $colName . ") REFERENCES " . $infoArr["table"] . "(" . $infoArr["column"] . ") ";
-        }
+        if( $this->isIncrement() ) $res .= "AUTO_INCREMENT ";
 
         return $res;
     }
@@ -458,6 +448,56 @@ class MySqlTruncateQuery extends DbTruncateQuery {
     public function compile() {
         // easy as a slape (I hope it's possible to say it in english :D)
         return "TRUNCATE TABLE " . $this->getTableName();
+    }
+
+}
+
+/**
+ * @brief MySql's create query.
+ *
+ * Implementation of \\cfd\\core\\DbCreateQuery specific for
+ * MySql database system.
+ *
+ * @see \\cfd\\core\\DbCreateQuery
+ */
+class MySqlCreateQuery extends DbCreateQuery {
+
+    public function compile() {
+        $res = "CREATE TABLE ";
+        if( $this->mIfNotExists ) $res .= "IF NOT EXISTS ";
+        $res .= $this->getTableName() . "(";
+
+        // adding columns list with data types definitions
+        $sizeOfColumnsArr = count($this->mColumns);
+        $done = 0;
+        foreach($this->mColumns as $colName => $colType) {
+            $res .= DbDriver::substituteVariables( $colType->compile(), array("!col" => $colName) );
+            if(++$done != $sizeOfColumnsArr) $res .= ", ";
+        }
+
+        // adding primary key info if any
+        if( !is_null($this->mPrimaryKeyColumn) ) $res .= ", PRIMARY KEY(" . $this->mPrimaryKeyColumn . ")";
+
+        // adding foreign keys info if any
+        if( !empty($this->mForeignKeys) ) {
+            foreach($this->mForeignKeys as $colName => &$keyInfo) {
+                $res .= ", ";
+                if( !empty($keyInfo["name"]) ) $res .= "CONSTRAINT " . $keyInfo["name"] . " ";
+                $res .= "FOREIGN KEY(" . $colName . ") REFERENCES " . $keyInfo["table"] . "(" . $keyInfo["column"] . ")";
+            }
+        }
+
+        // adding unique keys info if any
+        if( !empty($this->mUniqueKeys) ) {
+            foreach($this->mUniqueKeys as $colName => &$keyInfo) {
+                $res .= ", ";
+                if( !empty($keyInfo["name"]) ) $res .= "CONSTRAINT " . $keyInfo["name"] . " ";
+                $res .= "UNIQUE(" . $colName . ")";
+            }
+        }
+
+        $res .= ")";
+        return $res;
     }
 
 }

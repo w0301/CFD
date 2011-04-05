@@ -11,7 +11,6 @@
  * @LICENSE_END@
  */
 
-use cfd\core\MySqlDataType;
 require_once("MainSettings.php");
 
 try {
@@ -26,64 +25,74 @@ try {
     $db = new cfd\core\DbDriver("mysql", "localhost", "cfd_test", "root", "root", "test_");
 
 /*
-    $res = $db->insert("table_name")->
-            values( array("name" => "'Richard Kakaš'", "address" => "'Bratislava'") )->
-            send();
-    var_dump($res);
-    echo "<br/>";
-*/
-/*
-    $res = $db->update("table_name")->
+    $res = $db->update("table4")->
             values( array("name" => "'Risko'", "address" => "'@val1'"), array("@val1" => "<city>London</city>") )->
             condition( $db->andCondition()->prop("id", array(70, 179), "BETWEEN") )->
             send();
     var_dump($res);
-    echo "<br/>";
+    echo "<br/><br/>";
 */
 /*
-    $res = $db->delete("table_name")->
+    $res = $db->delete("table4")->
             condition( $db->andCondition()->prop("name", "'Rick'", "=") )->
             send();
     var_dump($res);
-    echo "<br/>";
+    echo "<br/><br/>";
 */
 /*
-    $res = $db->truncate("table_name")->
-            send();
+    $res = $db->truncate("table4")->send();
     var_dump($res);
-    echo "<br/>";
+    echo "<br/><br/>";
 */
 /*
-    $res = $db->drop("sss", cfd\core\DbDropQuery::DATABASE_DROP)->
+    $res = $db->drop("table4", cfd\core\DbDropQuery::TABLE_DROP)->send();
+    var_dump($res);
+    echo "<br/><br/>";
+*/
+/*
+    $res = $db->create("table4")->
+            ifNotExists()->
+            columns(
+                array(
+                    "id" => $db->dataType(cfd\core\DbDataType::INTEGER_32)->increment(),
+                    "name" => $db->dataType(cfd\core\DbDataType::VARCHAR)->size(100),
+                    "address" => $db->dataType(cfd\core\DbDataType::VARCHAR)->size(200)->nullable(),
+                    "out_id" => $db->dataType(cfd\core\DbDataType::INTEGER_32)
+                )
+            )->
+            primaryKey("id")->
+            foreignKeys(
+                array(
+                    "out_id" => array("table" => "test_table1", "column" => "id", "name" => "forKey1")
+                )
+            )->
+            uniqueKeys(
+                array(
+                    "name" => array("name" => "uniqueKey1"),
+                    "address" => array("name" => "uniqueKey2")
+                )
+            )->
             send();
     var_dump($res);
-    echo "<br/>";
+    echo "<br/><br/>";
+*/
+/*
+    $res = $db->insert("table4")->
+            values( array("out_id" => 50, "name" => "'Richard Kakaš'", "address" => "'Bratislava'") )->
+            send();
+    var_dump($res);
+    echo "<br/><br/>";
 */
 
-    $res = $db->select("table_name", "t1")->
-            columns( array("id", "name", "address") )->
-            //expression( "COUNT(*)", "full_count" )->
-            //distinct(true)->
-            /*condition(
-                $db->orCondition()->prop("name", "1", "=")->
-                condition( $db->andCondition()->prop("name", "'Adam'", "=") )->
-                condition( $db->andCondition()->prop("name", "'Ri%'", "LIKE") )
-            )->*/
-            //condition( $db->andCondition()->prop("t1.id", array(60, 61, 62), "NOT IN") )->
-            //condition( $db->andCondition()->prop("t1.name", "'Rick'", "!=") )->
+    $res = $db->select("table4", "t1")->
+            columns( array("id", "out_id", "name", "address") )->
             limit(0, 0)->
-            order("id", cfd\core\DbSelectQuery::DESC_ORDER)->
-            order("name", cfd\core\DbSelectQuery::ASC_ORDER)->
-            /*join(
-                $db->select("table_name2", "t2")->columns( array("tel" => "phone") ),
-                $db->andCondition()->prop("t1.id", "t2.t_id", "=")
-            )->*/
             send();
-
     while( ($row = $res->fetchRow(cfd\core\DbQueryResult::NAME_INDEXES)) !== false ) {
         print_r($row);
         echo "<br/>";
     }
+    echo "<br/>";
 }
 catch(cfd\core\DbDriverException $e) {
     $msg = cfd\core\I18n::tr("Exception was caught:\n");
@@ -106,6 +115,6 @@ catch(cfd\core\ClassNotFoundException $e) {
 }
 catch(Exception $e) {
     $msg = cfd\core\I18n::tr("Exception was caught by default catch block:\n");
-    $msg .= "\t" . $e->getMessage();
+    $msg .= cfd\core\I18n::tr( "Message:\n\t!s", array("!s" => $e->getMessage()) );
     cfd\core\ExceptionHandling::handle($msg, $e);
 }

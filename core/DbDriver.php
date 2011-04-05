@@ -349,6 +349,21 @@ class DbDriver extends Object {
     }
 
     /**
+     * @brief Creates new create query.
+     *
+     * Use this function if you want to create new table. Returned object
+     * of type \\cfd\\core\\DbCreateTable can be adjusted by its functions
+     * and then send by its \\cfd\\core\\DbQuery::send() function.
+     *
+     * @param string $tableName Name for new table. Note that object's prefix is prepended
+     * to this name - returned by getTablePrefix() function.
+     * @return New object of type \\cfd\\core\\DbCreateQuery.
+     */
+    public function create($tableName) {
+        return $this->mCurrentDriver->createSpecificQuery(DbQuery::CREATE_QUERY, $this->addTablePrefix($tableName), NULL, $this);
+    }
+
+    /**
      * @brief Creates new drop query.
      *
      * Use this function to create object of \\cfd\\core\\DbDropQuery type.

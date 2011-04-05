@@ -65,11 +65,7 @@ abstract class DbDataType {
     private $mType = DbDataType::UNDEFINED;
     private $mIsUnsigned = false;
     private $mIsNullable = false;
-    private $mIsPrimaryKey = false;
-    private $mForeignKey = NULL;
-    private $mIsUnique = false;
     private $mIncrement = false;
-    private $mIncrementFrom = 1;
     private $mSize = 0;
     private $mScale = 0;
     private $mSetArray = array();
@@ -162,103 +158,6 @@ abstract class DbDataType {
     }
 
     /**
-     * @brief Marks type as primary.
-     *
-     * When this function is called type will be marked as
-     * primary key. Note that most database systems support only one
-     * primary key per table, so calling this function for more data types
-     * for table may result in database system error.
-     *
-     * @param boolean $val @b True to mark type as primary, @b false to unmark
-     * it (unmarked from the begining).
-     * @return Current object ($this).
-     */
-    public function primaryKey($val = true) {
-        $this->mIsPrimaryKey = $val;
-        return $this;
-    }
-
-    /**
-     * @brief Finds out if type is primary.
-     *
-     * @return @b True if type is marked as primary key (previously marked by
-     * primaryKey() function), @b false if it is not marked.
-     */
-    public function isPrimaryKey() {
-        return $this->mIsPrimaryKey;
-    }
-
-    /**
-     * @brief Marks type as foreign key.
-     *
-     * This function marks type as reference to row in other table.
-     * Table can have as many foreign keys as needed. If this function
-     * is called without arguments type is unmarked as foreign key.
-     *
-     * @param string $table Name of table to which will this key point. Note that
-     * you have to use full table name.
-     * @param string $col Name of column in pointed table that is used to determine
-     * pointed row.
-     * @return Current object ($this).
-     */
-    public function foreignKey($table = NULL, $col = NULL) {
-        if( is_null($table) || is_null($col) ) $this->mForeignKey = NULL;
-        else {
-            $this->mForeignKey = array("table" => $table, "column" => $col);
-        }
-        return $this;
-    }
-
-    /**
-     * @brief Finds out if type is foreign key.
-     *
-     * @return @b True if it is marked as foreign key (after calling foreignKey() function
-     * with both parameters), @b false if it is not marked as foregin key.
-     */
-    public function isForeignKey() {
-        return !is_null($this->mForeignKey);
-    }
-
-    /**
-     * @brief Returns info about foreign key.
-     *
-     * @return @b NULL if this type is not foreign key. @b Reference to array
-     * with folowing structure is returned when type is marked as foreign
-     * key:
-     * @code
-     * 	$arr = array("table" => "Name of table to which this key points"
-     * 				 "column" => "Name of column in pointed table which is used to find right row");
-     * @endcode
-     */
-    public function &getForeignKey() {
-        return $this->mForeignKey;
-    }
-
-    /**
-     * @brief Marks as unique data type.
-     *
-     * When data type is marked as unique it's not possible to
-     * insert more rows with same column value to the table.
-     *
-     * @param boolean $val @b True to mark, @b false to unmark (default from begining).
-     * @return Current object ($this).
-     */
-    public function unique($val = true) {
-        $this->mIsUnique = $val;
-        return $this;
-    }
-
-    /**
-     * @brief Finds out if type is unique.
-     *
-     * @return @b True if type was marked as unique (by unique() function),
-     * @b false otherwise.
-     */
-    public function isUnique() {
-        return $this->mIsUnique;
-    }
-
-    /**
      * @brief Adjusts auto increment feature.
      *
      * This function turn auto incrementing of column on/off
@@ -281,16 +180,6 @@ abstract class DbDataType {
      */
     public function isIncrement() {
         return $this->mIncrement;
-    }
-
-    /**
-     * @brief Gets increment from value.
-     *
-     * @return @b Integer that corresponds to value that was
-     * set by second parameter in increment() function.
-     */
-    public function getIncrementFrom() {
-        return $this->mIncrementFrom;
     }
 
     /**
