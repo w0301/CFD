@@ -22,12 +22,12 @@ abstract class DbDropQuery extends DbQuery {
     /**
      * When used means that drop query will delete table.
      */
-    const TABLE_DROP = 1;
+    const DROP_TABLE = 1;
 
     /**
      * When used means that drop query will delete whole database.
      */
-    const DATABASE_DROP = 2;
+    const DROP_DATABASE = 2;
 
     /**
      * @brief Type of drop query.
@@ -49,8 +49,8 @@ abstract class DbDropQuery extends DbQuery {
      * @param string $name Name of table or database that will be deleted.
      * @param integer $type Type of this query:
      * @code
-     *  \cfd\core\DbDropQuery::TABLE_DROP
-     *  \cfd\core\DbDropQuery::DATABASE_DROP
+     *  \cfd\core\DbDropQuery::DROP_TABLE
+     *  \cfd\core\DbDropQuery::DROP_DATABASE
      * @endcode
      * @param object $parent Object that created this query.
      */
@@ -61,29 +61,6 @@ abstract class DbDropQuery extends DbQuery {
         // adjusting class specific vars
         $this->mType = $type;
         $this->mName = $name;
-    }
-
-    /**
-     * @brief Gets type.
-     *
-     * @return Type of this drop query. One of these: (according to type)
-     * @code
-     *  \cfd\core\DbDropQuery::TABLE_DROP
-     *  \cfd\core\DbDropQuery::DATABASE_DROP
-     * @endcode
-     */
-    public function getType() {
-        return $this->mType;
-    }
-
-    /**
-     * @brief Gets name.
-     *
-     * @return Name of object (table or database) that will be
-     * deleted by this query.
-     */
-    public function getName() {
-        return $this->mName;
     }
 
 }

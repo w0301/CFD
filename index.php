@@ -51,12 +51,12 @@ try {
 */
 /*
     $res = $db->create("table4")->
-            ifNotExists()->
+           ifNotExists()->
             columns(
                 array(
                     "id" => $db->dataType(cfd\core\DbDataType::INTEGER_32)->increment(),
-                    "name" => $db->dataType(cfd\core\DbDataType::VARCHAR)->size(100),
-                    "address" => $db->dataType(cfd\core\DbDataType::VARCHAR)->size(200)->nullable(),
+                    "name" => $db->dataType(cfd\core\DbDataType::VARCHAR)->size(100)->defaultVal(" 'Risko' "),
+                    "address" => $db->dataType(cfd\core\DbDataType::VARCHAR)->size(200),
                     "out_id" => $db->dataType(cfd\core\DbDataType::INTEGER_32)
                 )
             )->
@@ -66,19 +66,13 @@ try {
                     "out_id" => array("table" => "test_table1", "column" => "id", "name" => "forKey1")
                 )
             )->
-            uniqueKeys(
-                array(
-                    "name" => array("name" => "uniqueKey1"),
-                    "address" => array("name" => "uniqueKey2")
-                )
-            )->
             send();
     var_dump($res);
     echo "<br/><br/>";
 */
 /*
     $res = $db->insert("table4")->
-            values( array("out_id" => 50, "name" => "'Richard Kakaš'", "address" => "'Bratislava'") )->
+            values( array("out_id" => 50, "address" => "'Bratislava'") )->
             send();
     var_dump($res);
     echo "<br/><br/>";
@@ -92,7 +86,8 @@ try {
         print_r($row);
         echo "<br/>";
     }
-    echo "<br/>";
+    echo "<br/><br/>";
+
 }
 catch(cfd\core\DbDriverException $e) {
     $msg = cfd\core\I18n::tr("Exception was caught:\n");

@@ -63,6 +63,7 @@ abstract class DbDataType {
     const TIMESTAMP = 24;
 
     private $mType = DbDataType::UNDEFINED;
+    private $mDefaultVal = NULL;
     private $mIsUnsigned = false;
     private $mIsNullable = false;
     private $mIncrement = false;
@@ -104,6 +105,32 @@ abstract class DbDataType {
      */
     public function getType() {
         return $this->mType;
+    }
+
+    /**
+     * @brief Sets default value.
+     *
+     * This function sets default value for this type.
+     *
+     * @param mixed $val Default value. If it is string put
+     * it to single quotes inside string. If it is integer you
+     * can use integer type here. Set to @b NULL to delete default
+     * value.
+     * @return Current object ($this).
+     */
+    public function defaultVal($val) {
+        $this->mDefaultVal = $val;
+        return $this;
+    }
+
+    /**
+     * @brief Gets default value.
+     *
+     * @return Default value for type. This is @b NULL
+     * if there is no default value.
+     */
+    public function getDefaulVal() {
+        return $this->mDefaultVal;
     }
 
     /**

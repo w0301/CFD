@@ -139,8 +139,8 @@ class DbDriver extends Object {
      * Disconnects object from database.
      */
     public function __destruct() {
-        parent::__destruct();
         $this->mCurrentDriver->disconnect();
+        parent::__destruct();
     }
 
     /**

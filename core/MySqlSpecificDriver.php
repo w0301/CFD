@@ -245,6 +245,7 @@ class MySqlDataType extends DbDataType {
         }
 
         // adding info that are on same line (statement)
+        if( !is_null( $this->getDefaulVal() ) ) $res .= "DEFAULT " . $this->getDefaulVal() . " ";
         if( $this->isUnsigned() && $this->getRealDataProperty("us") ) $res .= "UNSIGNED ";
         if( !$this->isNullable() ) $res .= "NOT NULL ";
         if( $this->isIncrement() ) $res .= "AUTO_INCREMENT ";
@@ -514,9 +515,9 @@ class MySqlDropQuery extends DbDropQuery {
 
     public function compile() {
         $res = "DROP ";
-        if( $this->getType() == DbDropQuery::DATABASE_DROP ) $res .= "DATABASE";
+        if( $this->mType == DbDropQuery::DROP_DATABASE ) $res .= "DATABASE";
         else $res .= "TABLE";
-        return $res . " " . $this->getName();
+        return $res . " " . $this->mName;
     }
 
 }
